@@ -6,28 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mdsnip - Shared Markdown Viewer</title>
     <meta name="description" content="A minimalist markdown sharing tool with high compression.">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown.min.css">
+    <!-- OverType Library -->
+    <script src="https://unpkg.com/overtype"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Light Theme */
-            --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --text-main: #2d3436;
-            --accent-color: #4a90e2;
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            /* Light Theme - Light background with DARK gaussian sphere */
+            --bg-base: #f8f9fa;
+            --bg-gradient:
+                radial-gradient(at 50% 50%, rgba(0, 0, 0, 0.05) 0px, transparent 60%),
+                radial-gradient(at 100% 0%, rgba(0, 0, 0, 0.03) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(0, 0, 0, 0.03) 0px, transparent 50%);
+
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(0, 0, 0, 0.06);
+            --text-main: #111111;
+            --accent-color: #000000;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
         }
 
         [data-theme="dark"] {
-            /* Dark Theme */
-            --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            --glass-bg: rgba(30, 41, 59, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f1f5f9;
-            --accent-color: #60a5fa;
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            /* Dark Theme - Dark background with LIGHT gaussian sphere */
+            --bg-base: #0a0a0a;
+            --bg-gradient:
+                radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.06) 0px, transparent 60%),
+                radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.02) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.02) 0px, transparent 50%);
+
+            --glass-bg: rgba(255, 255, 255, 0.02);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #eeeeee;
+            --accent-color: #ffffff;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
 
         * {
@@ -40,16 +50,18 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background: var(--bg-gradient);
+            background-color: var(--bg-base);
+            background-image: var(--bg-gradient);
             color: var(--text-main);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             align-items: center;
             overflow-x: hidden;
+            transition: background 0.6s ease, color 0.6s ease;
         }
 
         header {
             width: 100%;
-            padding: 20px 40px;
+            padding: 24px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -58,84 +70,42 @@
 
         .logo {
             font-weight: 700;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             color: var(--accent-color);
-            letter-spacing: -0.03em;
+            letter-spacing: -0.04em;
         }
 
         .actions {
             display: flex;
-            gap: 12px;
+            gap: 16px;
         }
 
         main {
-            width: 95%;
-            max-width: 1200px;
-            flex: 1;
+            width: 92%;
+            max-width: 900px;
+            height: calc(100vh - 180px);
+            /* Explicit height for the glass card */
             margin-bottom: 40px;
             display: flex;
+            flex-direction: column;
+            /* Ensure child fills vertical space */
             background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
+            border-radius: 32px;
             box-shadow: var(--shadow);
             overflow: hidden;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Mode: View */
-        body[data-mode="view"] #editor-container {
-            display: none;
-        }
-
-        body[data-mode="view"] #preview-container {
-            flex: 1;
-            padding: 60px;
-        }
-
-        body[data-mode="view"] main {
-            max-width: 900px;
-        }
-
-        /* Mode: Write */
-        body[data-mode="write"] #editor-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--glass-border);
-        }
-
-        body[data-mode="write"] #preview-container {
-            flex: 1;
-        }
-
-        body[data-mode="write"] main {
-            max-width: 1400px;
+            position: relative;
         }
 
         #editor {
             flex: 1;
-            background: transparent;
-            border: none;
-            padding: 40px;
-            font-family: 'SFMono-Regular', Consolas, monospace;
-            font-size: 15px;
-            line-height: 1.6;
-            outline: none;
-            color: var(--text-main);
-            resize: none;
-        }
-
-        #preview-container {
-            overflow-y: auto;
-            padding: 40px;
-        }
-
-        .markdown-body {
+            /* Grow to fill main */
+            width: 100%;
+            height: 100%;
             background: transparent !important;
-            font-family: inherit;
-            color: var(--text-main) !important;
         }
 
         button {
@@ -152,42 +122,103 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(10px);
         }
 
         button:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: var(--text-main);
         }
 
         button.primary {
-            background: var(--accent-color);
-            color: white;
+            background: var(--text-main);
+            color: var(--bg-base);
             border: none;
+        }
+
+        #notification {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 12px 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        footer {
+            width: 100%;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            font-size: 11px;
+            color: var(--text-main);
+            opacity: 0.4;
+            transition: opacity 0.3s;
+        }
+
+        footer:hover {
+            opacity: 0.8;
+        }
+
+        .keybind {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        kbd {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-family: inherit;
+            font-size: 10px;
         }
 
         #share-url-container {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: white;
+            background: var(--glass-bg);
             padding: 24px;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
             display: none;
             max-width: 400px;
             z-index: 100;
-            border: 1px solid #eee;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
         }
 
         #share-url {
             word-break: break-all;
             font-size: 13px;
-            color: var(--accent-color);
+            color: var(--text-main);
             margin-bottom: 12px;
             padding: 10px;
-            background: #f8f9fa;
+            background: rgba(0, 0, 0, 0.05);
             border-radius: 8px;
+            opacity: 0.8;
         }
 
         .url-warning {
@@ -199,7 +230,7 @@
         #loading-overlay {
             position: fixed;
             inset: 0;
-            background: var(--bg-gradient);
+            background: var(--bg-base);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -209,86 +240,204 @@
             color: var(--text-main);
         }
 
-        /* Dark Model EasyMDE Fixes */
-        [data-theme="dark"] .editor-toolbar {
-            background: rgba(0, 0, 0, 0.2) !important;
-            border: 1px solid var(--glass-border) !important;
+        /* OverType Customization */
+        .ot-root {
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
         }
 
-        [data-theme="dark"] .editor-toolbar i {
-            color: var(--text-main) !important;
+        .ot-editor-container {
+            flex: 1 !important;
+            height: auto !important;
         }
 
-        [data-theme="dark"] .CodeMirror {
-            color: var(--text-main) !important;
-        }
-
-        [data-theme="dark"] .editor-toolbar a.active,
-        [data-theme="dark"] .editor-toolbar a:hover {
-            background: rgba(255, 255, 255, 0.1) !important;
-        }
-
-        /* EasyMDE Override */
-        .EasyMDEContainer {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .CodeMirror {
-            flex: 1;
-            border: none !important;
+        .ot-editor {
             background: transparent !important;
+            border: none !important;
+            height: 100% !important;
+        }
+
+        .ot-preview {
+            padding: 40px !important;
+            color: var(--text-main) !important;
+            min-height: 100% !important;
+        }
+
+        /* Force OverType light/dark mode colors to be transparent for glass look */
+        [data-theme="light"] .ot-editor,
+        [data-theme="light"] .ot-preview {
+            background: transparent !important;
+        }
+
+        [data-theme="dark"] .ot-editor,
+        [data-theme="dark"] .ot-preview {
+            background: transparent !important;
+        }
+
+        .ot-toolbar {
+            background: rgba(127, 127, 127, 0.05) !important;
+            border-bottom: 1px solid var(--glass-border) !important;
+            padding: 8px 20px !important;
+            backdrop-filter: blur(5px);
+        }
+
+        [data-theme="dark"] .ot-toolbar button svg {
+            fill: #f1f5f9 !important;
+        }
+
+        body[data-mode="view"] .overtype-toolbar {
+            display: none !important;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            background-clip: content-box;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-main) !important;
+            background-clip: content-box;
+        }
+
+        /* Firefox support */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(127, 127, 127, 0.2) transparent;
         }
     </style>
 </head>
 
-<body data-mode="view" data-theme="light">
+<body data-theme="light">
     <div id="loading-overlay">Initializing Engine...</div>
 
     <header>
         <div class="logo">mdsnip</div>
         <div class="actions">
             <button id="theme-toggle" title="Toggle Dark Mode">🌙</button>
-            <button id="mode-toggle">Write Mode</button>
             <button id="share-btn" class="primary">Share</button>
         </div>
     </header>
 
     <main>
-        <div id="editor-container">
-            <textarea id="editor" placeholder="Start writing something amazing..."></textarea>
-        </div>
-        <div id="preview-container">
-            <div id="preview" class="markdown-body"></div>
-        </div>
+        <div id="editor"></div>
     </main>
 
-    <div id="share-url-container">
-        <div id="share-url"></div>
-        <button id="copy-btn">Copy to Clipboard</button>
-        <div id="url-warning" class="url-warning"></div>
-        <button onclick="document.getElementById('share-url-container').style.display='none'"
-            style="margin-left: 10px;">Close</button>
-    </div>
+    <footer>
+        <div class="keybind"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>E</kbd> Write Mode</div>
+        <div class="keybind"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>P</kbd> Preview Mode</div>
+        <div class="keybind"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>S</kbd> Copy Link</div>
+    </footer>
+
+    <div id="notification">Link copied to clipboard</div>
 
     <script src="static/wasm_exec.js"></script>
     <script type="module">
-        import { micromark } from 'https://esm.sh/micromark@3?bundle';
-
-        const editor = document.getElementById('editor');
-        const preview = document.getElementById('preview');
         const shareBtn = document.getElementById('share-btn');
-        const modeToggle = document.getElementById('mode-toggle');
         const themeToggle = document.getElementById('theme-toggle');
-        const shareUrlContainer = document.getElementById('share-url-container');
-        const shareUrlText = document.getElementById('share-url');
-        const urlWarning = document.getElementById('url-warning');
+        const notification = document.getElementById('notification');
         const loadingOverlay = document.getElementById('loading-overlay');
 
         let wasmLoaded = false;
-        let easyMDELoaded = false;
-        let easyMDEInstance = null;
+        let overtype = null;
+        let currentMode = 'view';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.body.setAttribute('data-mode', mode);
+        }
+
+        const getMonoTheme = () => ({
+            name: 'monochrome',
+            colors: {
+                bgPrimary: 'transparent',
+                bgSecondary: 'transparent',
+                text: 'var(--text-main)',
+                h1: 'var(--text-main)',
+                h2: 'var(--text-main)',
+                h3: 'var(--text-main)',
+                strong: 'var(--text-main)',
+                em: 'var(--text-main)',
+                link: 'var(--text-main)',
+                code: 'var(--text-main)',
+                codeBg: 'rgba(127, 127, 127, 0.1)',
+                blockquote: 'var(--text-main)',
+                hr: 'var(--glass-border)',
+                syntaxMarker: 'rgba(127, 127, 127, 0.4)',
+                cursor: 'var(--text-main)',
+                selection: 'rgba(127, 127, 127, 0.2)'
+            }
+        });
+
+        // Initialize OverType
+        function initOverType(content = '') {
+            const [instance] = new OverType('#editor', {
+                value: content,
+                placeholder: 'Start writing something amazing...',
+                theme: getMonoTheme(),
+                toolbar: true,
+                autoResize: false,
+                fontSize: '16px',
+                fontFamily: "'Inter', sans-serif"
+            });
+            overtype = instance;
+
+            if (currentMode === 'view') {
+                overtype.showPreviewMode();
+            } else {
+                overtype.showNormalEditMode();
+            }
+            setMode(currentMode);
+
+            // Sync with OverType's internal mode switches (e.g. the eye icon)
+            const targetNode = document.getElementById('editor');
+            const observer = new MutationObserver(() => {
+                const isPreview = !!targetNode.querySelector('.overtype-preview-container') ||
+                    targetNode.classList.contains('overtype-preview-mode');
+                // OverType likely toggles a class or swaps elements. 
+                // Let's use a more generic check for the preview state.
+                const isActuallyPreview = overtype.isShowingPreview ? overtype.isShowingPreview() : currentMode === 'view';
+                // Since we don't know the exact internal property, we can check 
+                // for the presence of the preview div which usually has a specific class.
+                const hasPreview = targetNode.querySelector('[class*="preview"]') !== null;
+                const hasTextarea = targetNode.querySelector('textarea') !== null;
+
+                // If it's in preview mode, the textarea is usually hidden or gone.
+                // For simplicity, let's keep the shortcuts as the primary truth, 
+                // but try to catch the click.
+            });
+
+            // Actually, let's just intercept the clicks on the eye icon if possible
+            targetNode.addEventListener('click', (e) => {
+                const eyeBtn = e.target.closest('.overtype-toolbar-button');
+                if (eyeBtn && eyeBtn.title.toLowerCase().includes('preview')) {
+                    // This is likely the eye icon
+                    setTimeout(() => {
+                        // Check state after OverType processes the click
+                        const isPreview = !targetNode.querySelector('textarea:not([style*="display: none"])');
+                        if (isPreview) setMode('view');
+                        else setMode('write');
+                    }, 50);
+                }
+            });
+        }
 
         // Initialize WASM
         const go = new Go();
@@ -307,35 +456,19 @@
             if (hash) {
                 const decompressed = window.decompressMarkdown(hash);
                 if (decompressed && !decompressed.startsWith("Error:")) {
-                    editor.value = decompressed;
-                    updatePreview();
                     setMode('view');
+                    initOverType(decompressed);
                 } else if (decompressed.startsWith("Error:")) {
                     console.error(decompressed);
-                    preview.innerHTML = `<p style="color: #ff4757;">Invalid or corrupted snippet data.</p>`;
                     setMode('view');
+                    initOverType('# Invalid Data\nInvalid or corrupted snippet data.');
                 }
             } else {
-                // If no data, default to view mode as requested, 
-                // but if the editor is empty, show a placeholder or let them switch to write.
                 setMode('view');
-                preview.innerHTML = `<h1>Welcome to mdsnip</h1><p>Minimalist markdown sharing. Click <strong>Write Mode</strong> to start snippets.</p>`;
+                initOverType('# Welcome to mdsnip\nMinimalist markdown sharing. Click **Write Mode** to start snippets.');
             }
         }
 
-        function setMode(mode) {
-            document.body.setAttribute('data-mode', mode);
-            modeToggle.textContent = mode === 'view' ? 'Write Mode' : 'View Mode';
-
-            if (mode === 'write' && !easyMDELoaded) {
-                loadEasyMDE();
-            }
-        }
-
-        modeToggle.addEventListener('click', () => {
-            const currentMode = document.body.getAttribute('data-mode');
-            setMode(currentMode === 'view' ? 'write' : 'view');
-        });
 
         themeToggle.addEventListener('click', () => {
             const currentTheme = document.body.getAttribute('data-theme');
@@ -345,42 +478,17 @@
             themeToggle.title = newTheme === 'light' ? 'Toggle Dark Mode' : 'Toggle Light Mode';
         });
 
-        function updatePreview() {
-            preview.innerHTML = micromark(editor.value);
-        }
-
-        function loadEasyMDE() {
-            if (window.EasyMDE) return;
-
-            const script = document.createElement('script');
-            script.src = "https://unpkg.com/easymde/dist/easymde.min.js";
-            const link = document.createElement('link');
-            link.rel = "stylesheet";
-            link.href = "https://unpkg.com/easymde/dist/easymde.min.css";
-
-            document.head.appendChild(link);
-            document.head.appendChild(script);
-
-            script.onload = () => {
-                easyMDEInstance = new EasyMDE({
-                    element: editor,
-                    spellChecker: false,
-                    status: false,
-                    forceSync: true,
-                    placeholder: "Write something amazing...",
-                    minHeight: "400px",
-                });
-                easyMDEInstance.codemirror.on("change", () => {
-                    editor.value = easyMDEInstance.value();
-                    updatePreview();
-                });
-                easyMDELoaded = true;
-            };
+        function showNotification(message) {
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
         }
 
         shareBtn.addEventListener('click', () => {
-            if (!wasmLoaded) return;
-            const content = easyMDEInstance ? easyMDEInstance.value() : editor.value;
+            if (!wasmLoaded || !overtype) return;
+            const content = overtype.getValue();
             if (!content.trim()) {
                 alert("Please write something before sharing.");
                 return;
@@ -393,26 +501,54 @@
             }
 
             const url = `${window.location.origin}${window.location.pathname}#${compressed}`;
-            shareUrlText.textContent = url;
-            shareUrlContainer.style.display = 'block';
 
-            if (url.length > 2047) {
-                urlWarning.textContent = "Warning: URL exceeds 2,047 characters. Some browsers may truncate it.";
-            } else {
-                urlWarning.textContent = "";
-            }
-        });
-
-        document.getElementById('copy-btn').addEventListener('click', () => {
-            navigator.clipboard.writeText(shareUrlText.textContent).then(() => {
-                const btn = document.getElementById('copy-btn');
-                const originalText = btn.textContent;
-                btn.textContent = "Copied!";
-                setTimeout(() => btn.textContent = originalText, 2000);
+            navigator.clipboard.writeText(url).then(() => {
+                let msg = "Link copied to clipboard";
+                if (url.length > 2047) {
+                    msg = "Link copied (Note: URL is very long)";
+                }
+                showNotification(msg);
+            }).catch(err => {
+                console.error("Failed to copy link:", err);
+                alert("Could not copy link automatically. Manual copy:\n" + url);
             });
         });
 
-        window.addEventListener('hashchange', handleInitialData);
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.substring(1);
+            if (hash && overtype) {
+                const decompressed = window.decompressMarkdown(hash);
+                if (decompressed && !decompressed.startsWith("Error:")) {
+                    overtype.setValue(decompressed);
+                    overtype.showPreviewMode();
+                    setMode('view');
+                }
+            }
+        });
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey) {
+                const key = e.key.toLowerCase();
+
+                if (key === 'e') {
+                    e.preventDefault();
+                    if (currentMode !== 'write') {
+                        setMode('write');
+                        overtype.showNormalEditMode();
+                    }
+                } else if (key === 'p') {
+                    e.preventDefault();
+                    if (currentMode !== 'view') {
+                        setMode('view');
+                        overtype.showPreviewMode();
+                    }
+                } else if (key === 's') {
+                    e.preventDefault();
+                    shareBtn.click();
+                }
+            }
+        });
     </script>
 </body>
 
