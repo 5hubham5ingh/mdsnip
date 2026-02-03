@@ -1,0 +1,30 @@
+# Binaries for testing locally
+mdsnip
+mdsnip.exe
+
+# Build artifacts
+*.wasm
+static/main.wasm
+dist/
+
+# OS Files
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Go
+go.work
+vendor/
+*.test
+*.out
+
+# Logs
+*.log

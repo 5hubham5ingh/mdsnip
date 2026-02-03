@@ -1,0 +1,5 @@
+-replace EasyMDE and user plain text area
+- create github repo and upload
+- find that other project and link it in the readme
+- build.sh should build for all platforms supported
+- see if it possible to use tinygo for the binary as well

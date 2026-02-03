@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mdsnip - Shared Markdown Viewer</title>
+    <meta name="description" content="A minimalist markdown sharing tool with high compression.">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme */
+            --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --text-main: #2d3436;
+            --accent-color: #4a90e2;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --glass-bg: rgba(30, 41, 59, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f1f5f9;
+            --accent-color: #60a5fa;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            letter-spacing: -0.03em;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        main {
+            width: 95%;
+            max-width: 1200px;
+            flex: 1;
+            margin-bottom: 40px;
+            display: flex;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Mode: View */
+        body[data-mode="view"] #editor-container {
+            display: none;
+        }
+
+        body[data-mode="view"] #preview-container {
+            flex: 1;
+            padding: 60px;
+        }
+
+        body[data-mode="view"] main {
+            max-width: 900px;
+        }
+
+        /* Mode: Write */
+        body[data-mode="write"] #editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--glass-border);
+        }
+
+        body[data-mode="write"] #preview-container {
+            flex: 1;
+        }
+
+        body[data-mode="write"] main {
+            max-width: 1400px;
+        }
+
+        #editor {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 40px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            outline: none;
+            color: var(--text-main);
+            resize: none;
+        }
+
+        #preview-container {
+            overflow-y: auto;
+            padding: 40px;
+        }
+
+        .markdown-body {
+            background: transparent !important;
+            font-family: inherit;
+            color: var(--text-main) !important;
+        }
+
+        button {
+            background: var(--glass-bg);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        button.primary {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+        }
+
+        #share-url-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: none;
+            max-width: 400px;
+            z-index: 100;
+            border: 1px solid #eee;
+        }
+
+        #share-url {
+            word-break: break-all;
+            font-size: 13px;
+            color: var(--accent-color);
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .url-warning {
+            color: #ff4757;
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-gradient);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
+
+        /* Dark Model EasyMDE Fixes */
+        [data-theme="dark"] .editor-toolbar {
+            background: rgba(0, 0, 0, 0.2) !important;
+            border: 1px solid var(--glass-border) !important;
+        }
+
+        [data-theme="dark"] .editor-toolbar i {
+            color: var(--text-main) !important;
+        }
+
+        [data-theme="dark"] .CodeMirror {
+            color: var(--text-main) !important;
+        }
+
+        [data-theme="dark"] .editor-toolbar a.active,
+        [data-theme="dark"] .editor-toolbar a:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* EasyMDE Override */
+        .EasyMDEContainer {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .CodeMirror {
+            flex: 1;
+            border: none !important;
+            background: transparent !important;
+        }
+    </style>
+</head>
+
+<body data-mode="view" data-theme="light">
+    <div id="loading-overlay">Initializing Engine...</div>
+
+    <header>
+        <div class="logo">mdsnip</div>
+        <div class="actions">
+            <button id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+            <button id="mode-toggle">Write Mode</button>
+            <button id="share-btn" class="primary">Share</button>
+        </div>
+    </header>
+
+    <main>
+        <div id="editor-container">
+            <textarea id="editor" placeholder="Start writing something amazing..."></textarea>
+        </div>
+        <div id="preview-container">
+            <div id="preview" class="markdown-body"></div>
+        </div>
+    </main>
+
+    <div id="share-url-container">
+        <div id="share-url"></div>
+        <button id="copy-btn">Copy to Clipboard</button>
+        <div id="url-warning" class="url-warning"></div>
+        <button onclick="document.getElementById('share-url-container').style.display='none'"
+            style="margin-left: 10px;">Close</button>
+    </div>
+
+    <script src="static/wasm_exec.js"></script>
+    <script type="module">
+        import { micromark } from 'https://esm.sh/micromark@3?bundle';
+
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const shareBtn = document.getElementById('share-btn');
+        const modeToggle = document.getElementById('mode-toggle');
+        const themeToggle = document.getElementById('theme-toggle');
+        const shareUrlContainer = document.getElementById('share-url-container');
+        const shareUrlText = document.getElementById('share-url');
+        const urlWarning = document.getElementById('url-warning');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        let wasmLoaded = false;
+        let easyMDELoaded = false;
+        let easyMDEInstance = null;
+
+        // Initialize WASM
+        const go = new Go();
+        WebAssembly.instantiateStreaming(fetch("static/main.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);
+            wasmLoaded = true;
+            loadingOverlay.style.display = 'none';
+            handleInitialData();
+        }).catch(err => {
+            console.error("Failed to load WASM:", err);
+            loadingOverlay.innerHTML = "<div>Error loading engine. <br><small>Make sure you are serving this via HTTP.</small></div>";
+        });
+
+        function handleInitialData() {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const decompressed = window.decompressMarkdown(hash);
+                if (decompressed && !decompressed.startsWith("Error:")) {
+                    editor.value = decompressed;
+                    updatePreview();
+                    setMode('view');
+                } else if (decompressed.startsWith("Error:")) {
+                    console.error(decompressed);
+                    preview.innerHTML = `<p style="color: #ff4757;">Invalid or corrupted snippet data.</p>`;
+                    setMode('view');
+                }
+            } else {
+                // If no data, default to view mode as requested, 
+                // but if the editor is empty, show a placeholder or let them switch to write.
+                setMode('view');
+                preview.innerHTML = `<h1>Welcome to mdsnip</h1><p>Minimalist markdown sharing. Click <strong>Write Mode</strong> to start snippets.</p>`;
+            }
+        }
+
+        function setMode(mode) {
+            document.body.setAttribute('data-mode', mode);
+            modeToggle.textContent = mode === 'view' ? 'Write Mode' : 'View Mode';
+
+            if (mode === 'write' && !easyMDELoaded) {
+                loadEasyMDE();
+            }
+        }
+
+        modeToggle.addEventListener('click', () => {
+            const currentMode = document.body.getAttribute('data-mode');
+            setMode(currentMode === 'view' ? 'write' : 'view');
+        });
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            themeToggle.textContent = newTheme === 'light' ? '🌙' : '☀️';
+            themeToggle.title = newTheme === 'light' ? 'Toggle Dark Mode' : 'Toggle Light Mode';
+        });
+
+        function updatePreview() {
+            preview.innerHTML = micromark(editor.value);
+        }
+
+        function loadEasyMDE() {
+            if (window.EasyMDE) return;
+
+            const script = document.createElement('script');
+            script.src = "https://unpkg.com/easymde/dist/easymde.min.js";
+            const link = document.createElement('link');
+            link.rel = "stylesheet";
+            link.href = "https://unpkg.com/easymde/dist/easymde.min.css";
+
+            document.head.appendChild(link);
+            document.head.appendChild(script);
+
+            script.onload = () => {
+                easyMDEInstance = new EasyMDE({
+                    element: editor,
+                    spellChecker: false,
+                    status: false,
+                    forceSync: true,
+                    placeholder: "Write something amazing...",
+                    minHeight: "400px",
+                });
+                easyMDEInstance.codemirror.on("change", () => {
+                    editor.value = easyMDEInstance.value();
+                    updatePreview();
+                });
+                easyMDELoaded = true;
+            };
+        }
+
+        shareBtn.addEventListener('click', () => {
+            if (!wasmLoaded) return;
+            const content = easyMDEInstance ? easyMDEInstance.value() : editor.value;
+            if (!content.trim()) {
+                alert("Please write something before sharing.");
+                return;
+            }
+
+            const compressed = window.compressMarkdown(content);
+            if (compressed.startsWith("Error:")) {
+                alert(compressed);
+                return;
+            }
+
+            const url = `${window.location.origin}${window.location.pathname}#${compressed}`;
+            shareUrlText.textContent = url;
+            shareUrlContainer.style.display = 'block';
+
+            if (url.length > 2047) {
+                urlWarning.textContent = "Warning: URL exceeds 2,047 characters. Some browsers may truncate it.";
+            } else {
+                urlWarning.textContent = "";
+            }
+        });
+
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(shareUrlText.textContent).then(() => {
+                const btn = document.getElementById('copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = "Copied!";
+                setTimeout(() => btn.textContent = originalText, 2000);
+            });
+        });
+
+        window.addEventListener('hashchange', handleInitialData);
+    </script>
+</body>
+
+</html>
