@@ -25,8 +25,24 @@ mkdir -p $DIST_DIR
 # 1. Build WASM for Frontend
 echo "Building WASM..."
 mkdir -p static
-cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" static/
-GOOS=js GOARCH=wasm go build -o static/main.wasm cmd/wasm/main.go
+
+if command -v tinygo &> /dev/null; then
+    echo "  - Using TinyGo for optimized build..."
+    TINYGO_ROOT=$(tinygo env TINYGOROOT)
+    cp "${TINYGO_ROOT}/targets/wasm_exec.js" static/
+    # -no-debug: strips debug symbols
+    # -panic=trap: replaces panic messages with a simple processor trap
+    tinygo build -o static/main.wasm -target wasm -no-debug -panic=trap cmd/wasm/main.go
+    
+    if command -v wasm-opt &> /dev/null; then
+        echo "  - Running wasm-opt for maximum optimization..."
+        wasm-opt -Oz static/main.wasm -o static/main.wasm
+    fi
+else
+    echo "  - TinyGo not found, falling back to standard Go (binary will be larger)..."
+    cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" static/
+    GOOS=js GOARCH=wasm go build -o static/main.wasm cmd/wasm/main.go
+fi
 
 # 2. Build CLI for multiple platforms
 PLATFORMS=(

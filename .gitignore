@@ -3,8 +3,6 @@ mdsnip
 mdsnip.exe
 
 # Build artifacts
-*.wasm
-static/main.wasm
 dist/
 
 # OS Files
