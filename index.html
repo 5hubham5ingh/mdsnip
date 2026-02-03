@@ -11,12 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Light Theme - Light background with DARK gaussian sphere */
-            --bg-base: #f8f9fa;
+            /* Light Theme - Brighter center, darker edges */
+            --bg-base: #e8e9ea;
             --bg-gradient:
-                radial-gradient(at 50% 50%, rgba(0, 0, 0, 0.05) 0px, transparent 60%),
-                radial-gradient(at 100% 0%, rgba(0, 0, 0, 0.03) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(0, 0, 0, 0.03) 0px, transparent 50%);
+                radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.8) 0px, transparent 60%),
+                radial-gradient(at 100% 0%, rgba(255, 255, 255, 0.4) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(255, 255, 255, 0.4) 0px, transparent 50%);
 
             --glass-bg: rgba(255, 255, 255, 0.15);
             --glass-border: rgba(0, 0, 0, 0.06);
@@ -26,12 +26,12 @@
         }
 
         [data-theme="dark"] {
-            /* Dark Theme - Dark background with LIGHT gaussian sphere */
-            --bg-base: #0a0a0a;
+            /* Dark Theme - Darker center, lighter edges */
+            --bg-base: #1a1a1a;
             --bg-gradient:
-                radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.06) 0px, transparent 60%),
-                radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.02) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.02) 0px, transparent 50%);
+                radial-gradient(at 50% 50%, rgba(0, 0, 0, 0.6) 0px, transparent 60%),
+                radial-gradient(at 0% 0%, rgba(0, 0, 0, 0.3) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 0, 0, 0.3) 0px, transparent 50%);
 
             --glass-bg: rgba(255, 255, 255, 0.02);
             --glass-border: rgba(255, 255, 255, 0.08);
@@ -195,38 +195,6 @@
             font-size: 10px;
         }
 
-        #share-url-container {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: var(--glass-bg);
-            padding: 24px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            display: none;
-            max-width: 400px;
-            z-index: 100;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(20px);
-        }
-
-        #share-url {
-            word-break: break-all;
-            font-size: 13px;
-            color: var(--text-main);
-            margin-bottom: 12px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 8px;
-            opacity: 0.8;
-        }
-
-        .url-warning {
-            color: #ff4757;
-            font-size: 11px;
-            margin-top: 8px;
-        }
-
         #loading-overlay {
             position: fixed;
             inset: 0;
@@ -240,7 +208,7 @@
             color: var(--text-main);
         }
 
-        /* OverType Customization */
+        /* OverType Scoped Styles */
         .ot-root {
             height: 100% !important;
             display: flex !important;
@@ -252,42 +220,67 @@
             height: auto !important;
         }
 
-        .ot-editor {
-            background: transparent !important;
-            border: none !important;
-            height: 100% !important;
-        }
-
-        .ot-preview {
-            padding: 40px !important;
-            color: var(--text-main) !important;
-            min-height: 100% !important;
-        }
-
-        /* Force OverType light/dark mode colors to be transparent for glass look */
-        [data-theme="light"] .ot-editor,
-        [data-theme="light"] .ot-preview {
+        /* Force transparency for glass card */
+        .overtype-input,
+        .overtype-preview-container {
             background: transparent !important;
         }
 
-        [data-theme="dark"] .ot-editor,
-        [data-theme="dark"] .ot-preview {
-            background: transparent !important;
-        }
-
-        .ot-toolbar {
+        /* Monochromatic Toolbar */
+        body .overtype-toolbar {
             background: rgba(127, 127, 127, 0.05) !important;
+            background-color: rgba(127, 127, 127, 0.05) !important;
             border-bottom: 1px solid var(--glass-border) !important;
-            padding: 8px 20px !important;
-            backdrop-filter: blur(5px);
+            padding: 12px 20px !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            display: flex !important;
+            align-items: center !important;
+            box-shadow: none !important;
         }
 
-        [data-theme="dark"] .ot-toolbar button svg {
-            fill: #f1f5f9 !important;
+        /* Dark Mode Specific Toolbar Overrides */
+        [data-theme="dark"] .overtype-toolbar {
+            background: rgba(0, 0, 0, 0.2) !important;
+            background-color: rgba(0, 0, 0, 0.2) !important;
         }
 
         body[data-mode="view"] .overtype-toolbar {
             display: none !important;
+        }
+
+        .overtype-toolbar-button {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 32px !important;
+            height: 32px !important;
+            padding: 0 !important;
+            margin: 0 4px !important;
+        }
+
+        .overtype-toolbar-button svg {
+            stroke: var(--text-main) !important;
+            fill: none !important;
+            width: 18px !important;
+            height: 18px !important;
+            transition: stroke 0.2s ease, transform 0.2s ease;
+        }
+
+        .overtype-toolbar-button:hover svg {
+            stroke: var(--accent-color) !important;
+            transform: scale(1.15);
+        }
+
+        /* Separator scaling */
+        .overtype-toolbar-separator {
+            background-color: var(--glass-border) !important;
+            width: 1px !important;
+            height: 18px !important;
+            margin: 0 8px !important;
         }
 
         /* Custom Scrollbars */
@@ -317,7 +310,6 @@
             background-clip: content-box;
         }
 
-        /* Firefox support */
         * {
             scrollbar-width: thin;
             scrollbar-color: rgba(127, 127, 127, 0.2) transparent;
@@ -325,11 +317,12 @@
     </style>
 </head>
 
-<body data-theme="light">
+<body data-theme="light" data-mode="view">
     <div id="loading-overlay">Initializing Engine...</div>
 
     <header>
-        <div class="logo">mdsnip</div>
+        <a href="https://github.com/5hubham5ingh/mdsnip?tab=readme-ov-file#mdsnip" target="_blank" class="logo"
+            style="text-decoration: none; color: inherit;">mdsnip</a>
         <div class="actions">
             <button id="theme-toggle" title="Toggle Dark Mode">🌙</button>
             <button id="share-btn" class="primary">Share</button>
@@ -357,14 +350,9 @@
 
         let wasmLoaded = false;
         let overtype = null;
-        let currentMode = 'view';
 
-        function setMode(mode) {
-            currentMode = mode;
-            document.body.setAttribute('data-mode', mode);
-        }
-
-        const getMonoTheme = () => ({
+        // Official API: Custom Monochromatic Theme
+        const MONO_THEME = {
             name: 'monochrome',
             colors: {
                 bgPrimary: 'transparent',
@@ -384,59 +372,48 @@
                 cursor: 'var(--text-main)',
                 selection: 'rgba(127, 127, 127, 0.2)'
             }
-        });
+        };
 
-        // Initialize OverType
+        function setMode(mode) {
+            document.body.setAttribute('data-mode', mode);
+            if (!overtype) return;
+            if (mode === 'view') overtype.showPreviewMode();
+            else overtype.showNormalEditMode();
+        }
+
+        // Initialize OverType using Official Constructor & Options
         function initOverType(content = '') {
             const [instance] = new OverType('#editor', {
                 value: content,
                 placeholder: 'Start writing something amazing...',
-                theme: getMonoTheme(),
-                toolbar: true,
+                theme: MONO_THEME,
+                toolbar: true,  // Use default toolbar with all built-in icons
                 autoResize: false,
                 fontSize: '16px',
                 fontFamily: "'Inter', sans-serif"
             });
             overtype = instance;
 
-            if (currentMode === 'view') {
-                overtype.showPreviewMode();
-            } else {
-                overtype.showNormalEditMode();
-            }
-            setMode(currentMode);
-
-            // Sync with OverType's internal mode switches (e.g. the eye icon)
-            const targetNode = document.getElementById('editor');
-            const observer = new MutationObserver(() => {
-                const isPreview = !!targetNode.querySelector('.overtype-preview-container') ||
-                    targetNode.classList.contains('overtype-preview-mode');
-                // OverType likely toggles a class or swaps elements. 
-                // Let's use a more generic check for the preview state.
-                const isActuallyPreview = overtype.isShowingPreview ? overtype.isShowingPreview() : currentMode === 'view';
-                // Since we don't know the exact internal property, we can check 
-                // for the presence of the preview div which usually has a specific class.
-                const hasPreview = targetNode.querySelector('[class*="preview"]') !== null;
-                const hasTextarea = targetNode.querySelector('textarea') !== null;
-
-                // If it's in preview mode, the textarea is usually hidden or gone.
-                // For simplicity, let's keep the shortcuts as the primary truth, 
-                // but try to catch the click.
-            });
-
-            // Actually, let's just intercept the clicks on the eye icon if possible
-            targetNode.addEventListener('click', (e) => {
-                const eyeBtn = e.target.closest('.overtype-toolbar-button');
-                if (eyeBtn && eyeBtn.title.toLowerCase().includes('preview')) {
-                    // This is likely the eye icon
+            // Sync mode state when the library's viewMode button is clicked
+            const editorEl = document.getElementById('editor');
+            editorEl.addEventListener('click', (e) => {
+                const btn = e.target.closest('.overtype-toolbar-button');
+                if (btn) {
+                    // After OverType processes the click, check if mode changed
                     setTimeout(() => {
-                        // Check state after OverType processes the click
-                        const isPreview = !targetNode.querySelector('textarea:not([style*="display: none"])');
-                        if (isPreview) setMode('view');
-                        else setMode('write');
+                        // Check if we're in preview mode by looking for the preview container
+                        const isPreview = !!editorEl.querySelector('.overtype-preview') ||
+                            !editorEl.querySelector('textarea.overtype-input');
+                        const newMode = isPreview ? 'view' : 'write';
+                        if (document.body.getAttribute('data-mode') !== newMode) {
+                            document.body.setAttribute('data-mode', newMode);
+                        }
                     }, 50);
                 }
             });
+
+            // Force the mode after initialization to ensure toolbar visibility is synced
+            setMode(document.body.getAttribute('data-mode') || 'view');
         }
 
         // Initialize WASM
@@ -453,22 +430,24 @@
 
         function handleInitialData() {
             const hash = window.location.hash.substring(1);
+
             if (hash) {
+                // Hash exists: viewing shared content → Read mode
                 const decompressed = window.decompressMarkdown(hash);
+                let content;
                 if (decompressed && !decompressed.startsWith("Error:")) {
-                    setMode('view');
-                    initOverType(decompressed);
-                } else if (decompressed.startsWith("Error:")) {
-                    console.error(decompressed);
-                    setMode('view');
-                    initOverType('# Invalid Data\nInvalid or corrupted snippet data.');
+                    content = decompressed;
+                } else {
+                    content = '# Invalid Data\nInvalid or corrupted snippet data.';
                 }
-            } else {
                 setMode('view');
-                initOverType('# Welcome to mdsnip\nMinimalist markdown sharing. Click **Write Mode** to start snippets.');
+                initOverType(content);
+            } else {
+                // No hash: creating new content → Write mode
+                setMode('write');
+                initOverType('');
             }
         }
-
 
         themeToggle.addEventListener('click', () => {
             const currentTheme = document.body.getAttribute('data-theme');
@@ -481,37 +460,21 @@
         function showNotification(message) {
             notification.textContent = message;
             notification.classList.add('show');
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            setTimeout(() => notification.classList.remove('show'), 3000);
         }
 
         shareBtn.addEventListener('click', () => {
             if (!wasmLoaded || !overtype) return;
             const content = overtype.getValue();
-            if (!content.trim()) {
-                alert("Please write something before sharing.");
-                return;
-            }
+            if (!content.trim()) return alert("Please write something before sharing.");
 
             const compressed = window.compressMarkdown(content);
-            if (compressed.startsWith("Error:")) {
-                alert(compressed);
-                return;
-            }
+            if (compressed.startsWith("Error:")) return alert(compressed);
 
             const url = `${window.location.origin}${window.location.pathname}#${compressed}`;
-
             navigator.clipboard.writeText(url).then(() => {
-                let msg = "Link copied to clipboard";
-                if (url.length > 2047) {
-                    msg = "Link copied (Note: URL is very long)";
-                }
-                showNotification(msg);
-            }).catch(err => {
-                console.error("Failed to copy link:", err);
-                alert("Could not copy link automatically. Manual copy:\n" + url);
-            });
+                showNotification(url.length > 2047 ? "Link copied (Note: URL is very long)" : "Link copied to clipboard");
+            }).catch(() => alert("Could not copy link. Manual copy:\n" + url));
         });
 
         window.addEventListener('hashchange', () => {
@@ -520,7 +483,6 @@
                 const decompressed = window.decompressMarkdown(hash);
                 if (decompressed && !decompressed.startsWith("Error:")) {
                     overtype.setValue(decompressed);
-                    overtype.showPreviewMode();
                     setMode('view');
                 }
             }
@@ -530,23 +492,9 @@
         window.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey) {
                 const key = e.key.toLowerCase();
-
-                if (key === 'e') {
-                    e.preventDefault();
-                    if (currentMode !== 'write') {
-                        setMode('write');
-                        overtype.showNormalEditMode();
-                    }
-                } else if (key === 'p') {
-                    e.preventDefault();
-                    if (currentMode !== 'view') {
-                        setMode('view');
-                        overtype.showPreviewMode();
-                    }
-                } else if (key === 's') {
-                    e.preventDefault();
-                    shareBtn.click();
-                }
+                if (key === 'e') { e.preventDefault(); setMode('write'); }
+                else if (key === 'p') { e.preventDefault(); setMode('view'); }
+                else if (key === 's') { e.preventDefault(); shareBtn.click(); }
             }
         });
     </script>
