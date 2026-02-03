@@ -1,4 +1,12 @@
 #!/bin/bash
+echo "Minifying main.html -> index.html..."
+npx html-minifier-terser main.html \
+    --collapse-whitespace \
+    --remove-comments \
+    --minify-js true \
+    --minify-css true \
+    -o index.html
+
 echo "Starting server at http://localhost:8080"
 # Use Python if available, otherwise suggest alternatives
 if command -v python3 &>/dev/null; then

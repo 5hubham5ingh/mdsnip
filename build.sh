@@ -22,6 +22,15 @@ echo "Cleaning up..."
 rm -rf $DIST_DIR
 mkdir -p $DIST_DIR
 
+# 0. Minify HTML
+echo "Minifying main.html -> index.html..."
+npx html-minifier-terser main.html \
+    --collapse-whitespace \
+    --remove-comments \
+    --minify-js true \
+    --minify-css true \
+    -o index.html
+
 # 1. Build WASM for Frontend
 echo "Building WASM..."
 mkdir -p static
