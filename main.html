@@ -8,7 +8,6 @@
       name="description"
       content="A minimalist markdown sharing tool with high compression."
     >
-    <!-- OverType Library -->
     <script src="https://unpkg.com/overtype"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
@@ -16,7 +15,6 @@
     >
     <style>
       :root {
-        /* Light Theme - Brighter center, darker edges */
         --bg-base: #e8e9ea;
         --bg-gradient:
           radial-gradient(
@@ -38,10 +36,10 @@
         --text-main: #111111;
         --accent-color: #000000;
         --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+        --sidebar-width: 240px;
       }
 
       [data-theme="dark"] {
-        /* Dark Theme - Darker center, lighter edges */
         --bg-base: #1a1a1a;
         --bg-gradient:
           radial-gradient(
@@ -75,7 +73,7 @@
         background-color: var(--bg-base);
         background-image: var(--bg-gradient);
         color: var(--text-main);
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: "Inter", sans-serif;
         align-items: center;
         overflow-x: hidden;
         transition: background 0.6s ease, color 0.6s ease;
@@ -90,6 +88,11 @@
         max-width: 1200px;
       }
 
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
       .logo {
         font-weight: 700;
         font-size: 1.6rem;
@@ -99,18 +102,15 @@
 
       .actions {
         display: flex;
-        gap: 16px;
+        gap: 12px;
       }
 
       main {
         width: 92%;
-        max-width: 900px;
+        max-width: 1100px;
         height: calc(100vh - 180px);
-        /* Explicit height for the glass card */
         margin-bottom: 40px;
-        display: flex;
-        flex-direction: column;
-        /* Ensure child fills vertical space */
+        display: flex; /* Changed to flex-row */
         background: var(--glass-bg);
         backdrop-filter: blur(24px) saturate(180%);
         -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -122,9 +122,81 @@
         position: relative;
       }
 
-      #editor {
+      /* Sidebar Styles */
+      #sidebar {
+        width: var(--sidebar-width);
+        border-right: 1px solid var(--glass-border);
+        display: flex;
+        flex-direction: column;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+        overflow: hidden;
+        background: rgba(127, 127, 127, 0.03);
+      }
+
+      body.sidebar-collapsed #sidebar {
+        width: 0;
+        opacity: 0;
+        border: none;
+      }
+
+      .sidebar-content {
+        padding: 24px;
+        width: var(--sidebar-width);
+        overflow-y: auto;
+      }
+      .sidebar-header {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        opacity: 0.5;
+        margin-bottom: 16px;
+        font-weight: 700;
+      }
+
+      #toc {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .toc-link {
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-main);
+        text-align: left;
+        padding: 6px 5 !important;
+        width: 100%;
+        opacity: 0.6;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        box-shadow: none !important;
+      }
+      .toc-link:hover {
+        opacity: 1;
+        transform: translateX(4px);
+      }
+      .toc-h1 {
+        font-weight: 600;
+      }
+      .toc-h2 {
+        padding-left: 12px;
+        font-size: 13px;
+      }
+      .toc-h3 {
+        padding-left: 24px;
+        font-size: 12px;
+      }
+
+      #editor-container {
         flex: 1;
-        /* Grow to fill main */
+        height: 100%;
+        overflow: hidden;
+      }
+      #editor {
         width: 100%;
         height: 100%;
         background: transparent !important;
@@ -134,25 +206,21 @@
         background: var(--glass-bg);
         color: var(--text-main);
         border: 1px solid var(--glass-border);
-        padding: 10px 20px;
+        padding: 10px 16px;
         border-radius: 12px;
         cursor: pointer;
         font-weight: 500;
         font-size: 14px;
         transition: all 0.2s;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         backdrop-filter: blur(10px);
       }
-
       button:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         border-color: var(--text-main);
       }
-
       button.primary {
         background: var(--text-main);
         color: var(--bg-base);
@@ -172,13 +240,11 @@
         box-shadow: var(--shadow);
         color: var(--text-main);
         font-size: 14px;
-        font-weight: 500;
-        z-index: 1000;
         opacity: 0;
         visibility: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s;
+        z-index: 1000;
       }
-
       #notification.show {
         opacity: 1;
         visibility: visible;
@@ -190,31 +256,18 @@
         padding: 16px 40px;
         display: flex;
         justify-content: center;
-        align-items: center;
         gap: 24px;
         font-size: 11px;
         color: var(--text-main);
         opacity: 0.4;
-        transition: opacity 0.3s;
       }
-
-      footer:hover {
-        opacity: 0.8;
-      }
-
-      .keybind {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
       kbd {
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
         border-radius: 4px;
         padding: 2px 6px;
-        font-family: inherit;
         font-size: 10px;
+        margin: 0 2px;
       }
 
       #loading-overlay {
@@ -224,88 +277,61 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 1000;
+        z-index: 2000;
         font-weight: 600;
-        font-size: 1.2rem;
         color: var(--text-main);
       }
 
-      /* OverType Scoped Styles */
+      /* Hide Footer/Sidebar on Mobile */
+      @media (max-width: 768px) {
+        #sidebar {
+          display: none;
+        }
+        #sidebar-toggle {
+          display: none;
+        }
+        footer {
+          display: none !important;
+        }
+        header {
+          padding: 16px 20px;
+        }
+        main {
+          width: 95%;
+          height: calc(100vh - 140px);
+        }
+      }
+
+      /* OverType Overrides */
       .ot-root {
         height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
       }
-
-      .ot-editor-container {
-        flex: 1 !important;
-        height: auto !important;
-      }
-
-      /* Force transparency for glass card */
-      .overtype-input,
-      .overtype-preview-container {
+      .overtype-input, .overtype-preview-container {
         background: transparent !important;
       }
-
-      /* Monochromatic Toolbar */
-      body .overtype-toolbar {
+      .overtype-toolbar {
         background: rgba(127, 127, 127, 0.05) !important;
-        background-color: rgba(127, 127, 127, 0.05) !important;
+        backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--glass-border) !important;
-        padding: 12px 20px !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-        display: flex !important;
-        align-items: center !important;
-        box-shadow: none !important;
       }
 
-      /* Dark Mode Specific Toolbar Overrides */
+      .overtype-toolbar-button {
+        color: var(--text-main) !important;
+      }
+      .overtype-toolbar-button:hover {
+        transform: translateY(-1px) !important;
+        border-color: var(--text-main) !important;
+        background: rgba(127, 127, 127, 0.05) !important;
+      }
+
       [data-theme="dark"] .overtype-toolbar {
         background: rgba(0, 0, 0, 0.2) !important;
-        background-color: rgba(0, 0, 0, 0.2) !important;
       }
-
       body[data-mode="view"] .overtype-toolbar {
         display: none !important;
       }
 
-      .overtype-toolbar-button {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 32px !important;
-        height: 32px !important;
-        padding: 0 !important;
-        margin: 0 4px !important;
-      }
-
-      .overtype-toolbar-button svg {
-        stroke: var(--text-main) !important;
-        fill: none !important;
-        width: 18px !important;
-        height: 18px !important;
-        transition: stroke 0.2s ease, transform 0.2s ease;
-      }
-
-      .overtype-toolbar-button:hover svg {
-        stroke: var(--accent-color) !important;
-        transform: scale(1.15);
-      }
-
-      /* Separator scaling */
-      .overtype-toolbar-separator {
-        background-color: var(--glass-border) !important;
-        width: 1px !important;
-        height: 18px !important;
-        margin: 0 8px !important;
-      }
-
-      /* Custom Scrollbars */
+      /* Custom Scrollbars for all elements */
       ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -316,15 +342,16 @@
       }
 
       ::-webkit-scrollbar-thumb {
+        /* Light mode default */
         background: rgba(0, 0, 0, 0.1);
         border-radius: 20px;
         border: 2px solid transparent;
         background-clip: content-box;
       }
 
+      /* Dark mode override */
       [data-theme="dark"] ::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.1);
-        background-clip: content-box;
       }
 
       ::-webkit-scrollbar-thumb:hover {
@@ -332,15 +359,21 @@
         background-clip: content-box;
       }
 
+      /* Firefox Support */
       * {
         scrollbar-width: thin;
         scrollbar-color: rgba(127, 127, 127, 0.2) transparent;
       }
 
-      @media (pointer: coarse), (max-width: 1024px) {
-        footer {
-          display: none !important;
-        }
+      #theme-toggle {
+        font-size: 22px;
+        padding: 7px 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        height: 38px;
+        min-width: 44px;
       }
     </style>
   </head>
@@ -349,24 +382,31 @@
     <div id="loading-overlay">Initializing Engine...</div>
 
     <header>
-      <a
-        href="https://github.com/5hubham5ingh/mdsnip?tab=readme-ov-file#mdsnip"
-        target="_blank"
-        class="logo"
-        style="text-decoration: none; color: inherit"
-      >mdsnip</a>
+      <div class="logo-group">
+        <button id="sidebar-toggle" title="Toggle Sidebar">☰</button>
+        <a href="#" class="logo" style="text-decoration: none; color: inherit"
+        >mdsnip</a>
+      </div>
       <div class="actions">
-        <button id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+        <button id="theme-toggle" title="Toggle Dark Mode">☾</button>
         <button id="mode-toggle" title="Toggle Edit/View Mode">Edit</button>
-        <button id="share-btn" class="primary">Share</button>
+        <button id="share-btn">Share</button>
       </div>
     </header>
 
     <main>
-      <div id="editor"></div>
+      <aside id="sidebar">
+        <div class="sidebar-content">
+          <div class="sidebar-header">Outline</div>
+          <nav id="toc"></nav>
+        </div>
+      </aside>
+      <div id="editor-container">
+        <div id="editor"></div>
+      </div>
     </main>
 
-    <footer>
+    <footer id="desktop-footer">
       <div class="keybind">
         <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>E</kbd> Write Mode
       </div>
@@ -385,13 +425,14 @@
       const shareBtn = document.getElementById("share-btn");
       const themeToggle = document.getElementById("theme-toggle");
       const modeToggle = document.getElementById("mode-toggle");
+      const sidebarToggle = document.getElementById("sidebar-toggle");
       const notification = document.getElementById("notification");
       const loadingOverlay = document.getElementById("loading-overlay");
+      const tocContainer = document.getElementById("toc");
 
       let wasmLoaded = false;
       let overtype = null;
 
-      // Official API: Custom Monochromatic Theme
       const MONO_THEME = {
         name: "monochrome",
         colors: {
@@ -399,14 +440,7 @@
           bgSecondary: "transparent",
           text: "var(--text-main)",
           h1: "var(--text-main)",
-          h2: "var(--text-main)",
-          h3: "var(--text-main)",
-          strong: "var(--text-main)",
-          em: "var(--text-main)",
-          link: "var(--text-main)",
-          code: "var(--text-main)",
           codeBg: "rgba(127, 127, 127, 0.1)",
-          blockquote: "var(--text-main)",
           hr: "var(--glass-border)",
           syntaxMarker: "rgba(127, 127, 127, 0.4)",
           cursor: "var(--text-main)",
@@ -416,7 +450,6 @@
 
       function setMode(mode) {
         document.body.setAttribute("data-mode", mode);
-
         if (mode === "view") {
           modeToggle.innerHTML = "Edit";
           if (overtype) overtype.showPreviewMode();
@@ -424,45 +457,126 @@
           modeToggle.innerHTML = "View";
           if (overtype) overtype.showNormalEditMode();
         }
+        updateSidebar();
       }
 
-      // Initialize OverType using Official Constructor & Options
+      function updateSidebar() {
+        if (!overtype || !tocContainer) return;
+        const content = overtype.getValue();
+        const headingRegex = /^(#{1,3})\s+(.*)/gm;
+        tocContainer.innerHTML = "";
+
+        let match;
+        while ((match = headingRegex.exec(content)) !== null) {
+          const level = match[1].length;
+          const title = match[2].trim();
+          const btn = document.createElement("button");
+          btn.className = `toc-link toc-h${level}`;
+          btn.textContent = title;
+
+          btn.onclick = () => {
+            const editorEl = document.getElementById("editor");
+
+            // 1. Find the actual element that has the scrollbar
+            // We look for the preview container or the textarea
+            const scrollContainer =
+              editorEl.querySelector(".overtype-preview-container") ||
+              editorEl.querySelector(".overtype-preview") ||
+              editorEl.querySelector("textarea") ||
+              editorEl.querySelector('[style*="overflow-y: auto"]');
+
+            if (!scrollContainer) return;
+
+            // 2. Find the target header inside that container
+            const target = Array.from(
+              scrollContainer.querySelectorAll(
+                `h1, h2, h3, .overtype-heading`,
+              ),
+            )
+              .find((el) => el.textContent.trim().includes(title));
+
+            if (target) {
+              // Determine distance from top of container to the target
+              const topPos = target.offsetTop;
+              scrollContainer.scrollTo({
+                top: topPos - 20, // 20px offset for breathing room
+                behavior: "smooth",
+              });
+            } else if (scrollContainer.tagName === "TEXTAREA") {
+              // Fallback for Edit Mode
+              const index = content.indexOf(match[0]);
+              const linesBefore =
+                content.substring(0, index).split("\n").length;
+              const lineHeight = 24; // Average line height
+              scrollContainer.scrollTo({
+                top: (linesBefore - 1) * lineHeight,
+                behavior: "smooth",
+              });
+            }
+          };
+          tocContainer.appendChild(btn);
+        }
+      }
+
       function initOverType(content = "") {
         const [instance] = new OverType("#editor", {
           value: content,
-          placeholder: "Start writing something amazing...",
+          placeholder: "Start writing...",
           theme: MONO_THEME,
-          toolbar: true, // Use default toolbar with all built-in icons
-          autoResize: false,
+          toolbar: true,
           fontSize: "16px",
-          fontFamily: "'Inter', sans-serif",
         });
         overtype = instance;
 
-        // Sync mode state when the library's viewMode button is clicked
-        const editorEl = document.getElementById("editor");
-        editorEl.addEventListener("click", (e) => {
-          const btn = e.target.closest(".overtype-toolbar-button");
-          if (btn) {
-            // After OverType processes the click, check if mode changed
-            setTimeout(() => {
-              // Check if we're in preview mode by looking for the preview container
-              const isPreview =
-                !!editorEl.querySelector(".overtype-preview") ||
-                !editorEl.querySelector("textarea.overtype-input");
-              const newMode = isPreview ? "view" : "write";
-              if (document.body.getAttribute("data-mode") !== newMode) {
-                document.body.setAttribute("data-mode", newMode);
-              }
-            }, 50);
-          }
-        });
+        // Sync mode when toolbar buttons are clicked
+        document.getElementById("editor").addEventListener(
+          "click",
+          (e) => {
+            if (e.target.closest(".overtype-toolbar-button")) {
+              setTimeout(() => {
+                const isPreview =
+                  !!document.querySelector(".overtype-preview") ||
+                  !document.querySelector(".overtype-input");
+                const newMode = isPreview ? "view" : "write";
+                if (
+                  document.body.getAttribute("data-mode") !== newMode
+                ) setMode(newMode);
+              }, 50);
+            }
+          },
+        );
 
-        // Force the mode after initialization to ensure toolbar visibility is synced
+        // Update sidebar as you type
+        document.getElementById("editor").addEventListener(
+          "input",
+          updateSidebar,
+        );
         setMode(document.body.getAttribute("data-mode") || "view");
       }
 
-      // Initialize WASM
+      // Sidebar Toggle
+      sidebarToggle.addEventListener("click", () => {
+        document.body.classList.toggle("sidebar-collapsed");
+      });
+
+      // Mode Toggle
+      modeToggle.addEventListener("click", () => {
+        const currentMode = document.body.getAttribute("data-mode");
+        setMode(currentMode === "view" ? "write" : "view");
+      });
+
+      // Theme Toggle
+      themeToggle.addEventListener("click", () => {
+        const isDark =
+          document.body.getAttribute("data-theme") === "dark";
+        document.body.setAttribute(
+          "data-theme",
+          isDark ? "light" : "dark",
+        );
+        themeToggle.textContent = isDark ? "☾" : "☼";
+      });
+
+      // WASM Loader
       const go = new Go();
       WebAssembly.instantiateStreaming(
         fetch("static/main.wasm"),
@@ -473,100 +587,52 @@
         loadingOverlay.style.display = "none";
         handleInitialData();
       }).catch((err) => {
-        console.error("Failed to load WASM:", err);
-        loadingOverlay.innerHTML =
-          "<div>Error loading engine. <br><small>Make sure you are serving this via HTTP.</small></div>";
+        loadingOverlay.innerHTML = "Error loading engine.";
       });
 
       function handleInitialData() {
         const hash = window.location.hash.substring(1);
-
         if (hash) {
-          // Hash exists: viewing shared content → Read mode
           const decompressed = window.decompressMarkdown(hash);
-          let content;
-          if (decompressed && !decompressed.startsWith("Error:")) {
-            content = decompressed;
-          } else {
-            content =
-              "# Invalid Data\nInvalid or corrupted snippet data.";
-          }
+          initOverType(
+            decompressed && !decompressed.startsWith("Error:")
+              ? decompressed
+              : "# Error\nInvalid data.",
+          );
           setMode("view");
-          initOverType(content);
         } else {
-          // No hash: creating new content → Write mode
-          setMode("write");
           initOverType("");
+          setMode("write");
         }
-      }
-
-      themeToggle.addEventListener("click", () => {
-        const currentTheme = document.body.getAttribute("data-theme");
-        const newTheme = currentTheme === "light" ? "dark" : "light";
-        document.body.setAttribute("data-theme", newTheme);
-        themeToggle.textContent = newTheme === "light" ? "🌙" : "☀️";
-        themeToggle.title = newTheme === "light"
-          ? "Toggle Dark Mode"
-          : "Toggle Light Mode";
-      });
-
-      function showNotification(message) {
-        notification.textContent = message;
-        notification.classList.add("show");
-        setTimeout(() => notification.classList.remove("show"), 3000);
       }
 
       shareBtn.addEventListener("click", () => {
         if (!wasmLoaded || !overtype) return;
         const content = overtype.getValue();
-        if (!content.trim()) {
-          return alert("Please write something before sharing.");
-        }
-
+        if (!content.trim()) return alert("Write something first!");
         const compressed = window.compressMarkdown(content);
-        if (compressed.startsWith("Error:")) return alert(compressed);
-
         const url =
           `${window.location.origin}${window.location.pathname}#${compressed}`;
         navigator.clipboard.writeText(url).then(() => {
-          showNotification(
-            url.length > 2047
-              ? "Link copied (Note: URL is very long)"
-              : "Link copied to clipboard",
-          );
-        }).catch(() =>
-          alert("Could not copy link. Manual copy:\n" + url)
-        );
+          notification.textContent = "Link copied to clipboard";
+          notification.classList.add("show");
+          setTimeout(() => notification.classList.remove("show"), 3000);
+        });
       });
 
-      modeToggle.addEventListener("click", () => {
-        const currentMode = document.body.getAttribute("data-mode");
-        const newMode = currentMode === "view" ? "write" : "view";
-        setMode(newMode);
-      });
-
-      window.addEventListener("hashchange", () => {
-        const hash = window.location.hash.substring(1);
-        if (hash && overtype) {
-          const decompressed = window.decompressMarkdown(hash);
-          if (decompressed && !decompressed.startsWith("Error:")) {
-            overtype.setValue(decompressed);
-            setMode("view");
-          }
-        }
-      });
-
-      // Keyboard Shortcuts
+      // Shortcuts
       window.addEventListener("keydown", (e) => {
         if (e.ctrlKey && e.shiftKey) {
           const key = e.key.toLowerCase();
           if (key === "e") {
             e.preventDefault();
             setMode("write");
-          } else if (key === "p") {
+          }
+          if (key === "p") {
             e.preventDefault();
             setMode("view");
-          } else if (key === "s") {
+          }
+          if (key === "s") {
             e.preventDefault();
             shareBtn.click();
           }
