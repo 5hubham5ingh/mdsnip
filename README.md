@@ -8,7 +8,7 @@ Live in CLI share beautiful, rendered documents with others over web.
 
 1. **Generate:** Run `mdsnip docs.md` in your terminal.
 2. **Share:** Get an instant, highly-compressed URL.
-3. **View:** Your recipient clicks the link and sees a perfectly rendered web page—**zero server-side fetching required.**
+3. **View:** Your recipient clicks the link and sees a perfectly rendered web page, **zero server-side fetching required.**
 
 ---
 
@@ -48,11 +48,7 @@ A minimalist, client-side editor and renderer.
 * **Zero-Storage:** Your content is never saved on a server.
 * **WASM Powered:** CLI and Web app uses the same compression and decompression engine to maintain compatibility with one another.
 * **Full Editor:** WYSIWYG markdown editor with a live preview toggle.
-* **Keyboard Focused:**
-* `Ctrl+Shift+S`: Copy compressed link
-* `Ctrl+Shift+P`: Preview mode
-* `Ctrl+Shift+E`: Edit mode
-
+* **Keyboard Focused:** Provides sane keyboard shortcuts.
 
 ---
 
