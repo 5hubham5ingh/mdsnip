@@ -1,11 +1,24 @@
 #!/usr/bin/js
 
-const options = ["Release a new version", "Start a dev server"];
+const options = [
+  "Release a new version",
+  "Start a dev server",
+  "Re-release last version",
+];
 
-const what = enquire.choose(options);
+const choice = enquire.choose(options);
 
-if (what === options[1]) {
+if (choice === options[1]) {
   $`npx serve .`;
+  std.exit(0);
+}
+
+if (choice === options[2]) {
+  const lastVersion = exec("git describe --tags --abbrev=0");
+  if (!enquire.confirm(`Re-release version "${lastVersion}"?`)) std.exit(0);
+  $`git tag -d ${lastVersion}`.log();
+  $`git push origin --delete ${lastVersion}`.log();
+  $`git push origin ${lastVersion}`.log();
   std.exit(0);
 }
 
@@ -33,6 +46,6 @@ const cmds = [
 ];
 
 for (cmd of cmds) {
-  if (!enquire.confirm("Run" + `"${cmd}"`)) break;
+  if (!scriptArgs.includes("-y") && !enquire.confirm("Run" + `"${cmd}"`)) break;
   os.exec(cmd.split(" "));
 }
