@@ -1,5 +1,6 @@
-- see if it possible to use tinygo for the binary as well (optional if it gets in the way of developing a md renderer for terminal)
 - 'mdsnip url' will render the markdown in terminal and 'mdsnip filepath/filename.md' will generate shareable link
 - handle piping
-- encryption
-
+- 'mdsnip url > out.md' will put decoded markdown content in the out.md file.
+- 'cat in.md > mdsnip' will output shareable link
+- encryption: 'mdsnip -e pswrd' will encrypt the encoded data when generating shareable link or decoded the data when url is provided
+- add fevicon
