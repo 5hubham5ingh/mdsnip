@@ -461,62 +461,60 @@
       }
 
       function updateSidebar() {
-        if (!overtype || !tocContainer) return;
-        const content = overtype.getValue();
-        const headingRegex = /^(#{1,3})\s+(.*)/gm;
-        tocContainer.innerHTML = "";
+    if (!overtype || !tocContainer) return;
 
-        let match;
-        while ((match = headingRegex.exec(content)) !== null) {
-          const level = match[1].length;
-          const title = match[2].trim();
-          const btn = document.createElement("button");
-          btn.className = `toc-link toc-h${level}`;
-          btn.textContent = title;
+    const content = overtype.getValue();
+    
+    // 1. Remove fenced code blocks (``` ... ```) so comments inside aren't picked up
+    // This regex looks for code fences and replaces them with an empty string
+    const contentWithoutCode = content.replace(/```[\s\S]*?```/g, "");
 
-          btn.onclick = () => {
+    const headingRegex = /^(#{1,3})\s+(.*)/gm;
+    tocContainer.innerHTML = "";
+
+    let match;
+    // 2. We run the regex on the cleaned content
+    while ((match = headingRegex.exec(contentWithoutCode)) !== null) {
+        const level = match[1].length;
+        const title = match[2].trim();
+        const btn = document.createElement("button");
+        btn.className = `toc-link toc-h${level}`;
+        btn.textContent = title;
+
+        btn.onclick = () => {
             const editorEl = document.getElementById("editor");
-
-            // 1. Find the actual element that has the scrollbar
-            // We look for the preview container or the textarea
             const scrollContainer =
-              editorEl.querySelector(".overtype-preview-container") ||
-              editorEl.querySelector(".overtype-preview") ||
-              editorEl.querySelector("textarea") ||
-              editorEl.querySelector('[style*="overflow-y: auto"]');
+                editorEl.querySelector(".overtype-preview-container") ||
+                editorEl.querySelector(".overtype-preview") ||
+                editorEl.querySelector("textarea") ||
+                editorEl.querySelector('[style*="overflow-y: auto"]');
 
             if (!scrollContainer) return;
 
-            // 2. Find the target header inside that container
             const target = Array.from(
-              scrollContainer.querySelectorAll(
-                `h1, h2, h3, .overtype-heading`,
-              ),
-            )
-              .find((el) => el.textContent.trim().includes(title));
+                scrollContainer.querySelectorAll(`h1, h2, h3, .overtype-heading`)
+            ).find((el) => el.textContent.trim().includes(title));
 
             if (target) {
-              // Determine distance from top of container to the target
-              const topPos = target.offsetTop;
-              scrollContainer.scrollTo({
-                top: topPos - 20, // 20px offset for breathing room
-                behavior: "smooth",
-              });
+                const topPos = target.offsetTop;
+                scrollContainer.scrollTo({
+                    top: topPos - 20,
+                    behavior: "smooth",
+                });
             } else if (scrollContainer.tagName === "TEXTAREA") {
-              // Fallback for Edit Mode
-              const index = content.indexOf(match[0]);
-              const linesBefore =
-                content.substring(0, index).split("\n").length;
-              const lineHeight = 24; // Average line height
-              scrollContainer.scrollTo({
-                top: (linesBefore - 1) * lineHeight,
-                behavior: "smooth",
-              });
+                // Fallback for Edit Mode: We search the ORIGINAL content for the index
+                const index = content.indexOf(match[0]);
+                const linesBefore = content.substring(0, index).split("\n").length;
+                const lineHeight = 24; 
+                scrollContainer.scrollTo({
+                    top: (linesBefore - 1) * lineHeight,
+                    behavior: "smooth",
+                });
             }
-          };
-          tocContainer.appendChild(btn);
-        }
-      }
+        };
+        tocContainer.appendChild(btn);
+    }
+}
 
       function initOverType(content = "") {
         const [instance] = new OverType("#editor", {
