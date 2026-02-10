@@ -2,6 +2,10 @@
 mdsnip
 mdsnip.exe
 
+# Exclude generated and local config files
+index.html
+types.d.ts
+
 # Build artifacts
 dist/
 
