@@ -1,6 +1,4 @@
-- 'mdsnip url' will render the markdown in terminal and 'mdsnip filepath/filename.md' will generate shareable link
-- handle piping
-- 'mdsnip url > out.md' will put decoded markdown content in the out.md file.
-- 'cat in.md > mdsnip' will output shareable link
-- encryption: 'mdsnip -e pswrd' will encrypt the encoded data when generating shareable link or decoded the data when url is provided
-- add fevicon
+- the version in build.sh should be from the git tag
+- markdown renderer for terminal
+
+
