@@ -76,7 +76,7 @@ Before this tool, I use to write documents in Markdown using Nvim. Sharing this 
 4. Create new document.
 5. Right click and paste as Markdown.
 6. Change document access permission.
-7. Copy the sharable URL.
+7. Copy the shareable URL.
 8. Paste it in messaging app like Teams.
 
 Using this tool, now I follow these steps.
