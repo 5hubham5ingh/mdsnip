@@ -1,855 +1,881 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>mdsnip - Shared Markdown Viewer</title>
-  <meta name="description" content="A minimalist markdown sharing tool with high compression.">
-  <script src="https://unpkg.com/overtype"></script>
-  <style>
-    :root {
-      --bg-base: #e8e9ea;
-      --bg-gradient:
-        radial-gradient(at 50% 50%,
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mdsnip - Shared Markdown Viewer</title>
+    <meta
+      name="description"
+      content="A minimalist markdown sharing tool with high compression."
+    >
+    <script src="https://unpkg.com/overtype"></script>
+    <style>
+      :root {
+        --bg-base: #e8e9ea;
+        --bg-gradient:
+          radial-gradient(
+          at 50% 50%,
           rgba(255, 255, 255, 0.8) 0px,
-          transparent 60%), radial-gradient(at 100% 0%,
+          transparent 60%
+        ), radial-gradient(
+          at 100% 0%,
           rgba(255, 255, 255, 0.4) 0px,
-          transparent 50%), radial-gradient(at 0% 100%,
+          transparent 50%
+        ), radial-gradient(
+          at 0% 100%,
           rgba(255, 255, 255, 0.4) 0px,
-          transparent 50%);
+          transparent 50%
+        );
 
-      --glass-bg: rgba(255, 255, 255, 0.15);
-      --glass-border: rgba(0, 0, 0, 0.06);
-      --text-main: #111111;
-      --accent-color: #000000;
-      --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
-      --sidebar-width: 240px;
-    }
+        --glass-bg: rgba(255, 255, 255, 0.15);
+        --glass-border: rgba(0, 0, 0, 0.06);
+        --text-main: #111111;
+        --accent-color: #000000;
+        --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+        --sidebar-width: 240px;
+      }
 
-    [data-theme="dark"] {
-      --bg-base: #1a1a1a;
-      --bg-gradient:
-        radial-gradient(at 50% 50%,
+      [data-theme="dark"] {
+        --bg-base: #1a1a1a;
+        --bg-gradient:
+          radial-gradient(
+          at 50% 50%,
           rgb(47 46 46 / 60%) 0px,
-          transparent 60%), radial-gradient(at 0% 0%, rgba(0, 0, 0, 0.3) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgb(0 0 0) 0px, transparent 50%);
-      --glass-bg: rgba(255, 255, 255, 0.02);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --text-main: #eeeeee;
-      --accent-color: #ffffff;
-      --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background-color: var(--bg-base);
-      background-image: var(--bg-gradient);
-      color: var(--text-main);
-      font-family: "Inter", sans-serif;
-      align-items: center;
-      overflow-x: hidden;
-      transition: background 0.6s ease, color 0.6s ease;
-    }
-
-    header {
-      width: 100%;
-      padding: 24px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1200px;
-    }
-
-    .logo-group {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .logo {
-      font-weight: 700;
-      font-size: 1.6rem;
-      color: var(--accent-color);
-      letter-spacing: -0.04em;
-    }
-
-    .actions {
-      display: flex;
-      gap: 12px;
-    }
-
-    main {
-      width: 92%;
-      max-width: 1100px;
-      height: calc(100vh - 180px);
-      margin-bottom: 40px;
-      display: flex;
-      /* Changed to flex-row */
-      background: var(--glass-bg);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid var(--glass-border);
-      border-radius: 32px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-    }
-
-    /* Sidebar Styles */
-    #sidebar {
-      width: var(--sidebar-width);
-      border-right: 1px solid var(--glass-border);
-      display: flex;
-      flex-direction: column;
-      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
-      overflow: hidden;
-      background: rgba(127, 127, 127, 0.03);
-    }
-
-    body.sidebar-collapsed #sidebar {
-      width: 0;
-      opacity: 0;
-      border: none;
-    }
-
-    .sidebar-content {
-      padding: 24px;
-      width: var(--sidebar-width);
-      overflow-y: auto;
-    }
-
-    .sidebar-header {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      opacity: 0.5;
-      margin-bottom: 16px;
-      font-weight: 700;
-    }
-
-    #toc {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .toc-link {
-      background: transparent !important;
-      border: none !important;
-      color: var(--text-main);
-      text-align: left;
-      padding: 6px 5 !important;
-      width: 100%;
-      opacity: 0.6;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: block;
-      box-shadow: none !important;
-    }
-
-    .toc-link:hover {
-      opacity: 1;
-      transform: translateX(4px);
-    }
-
-    .toc-h1 {
-      font-weight: 600;
-    }
-
-    .toc-h2 {
-      padding-left: 12px;
-      font-size: 13px;
-    }
-
-    .toc-h3 {
-      padding-left: 24px;
-      font-size: 12px;
-    }
-
-    #editor-container {
-      flex: 1;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    #editor {
-      width: 100%;
-      height: 100%;
-      background: transparent !important;
-    }
-
-    button {
-      background: var(--glass-bg);
-      color: var(--text-main);
-      border: 1px solid var(--glass-border);
-      padding: 10px 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 14px;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(10px);
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      border-color: var(--text-main);
-    }
-
-    button.primary {
-      background: var(--text-main);
-      color: var(--bg-base);
-      border: none;
-    }
-
-    #notification {
-      position: fixed;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      padding: 12px 24px;
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      color: var(--text-main);
-      font-size: 14px;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s;
-      z-index: 1000;
-    }
-
-    #notification.show {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    footer {
-      width: 100%;
-      padding: 16px 40px;
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-      font-size: 11px;
-      color: var(--text-main);
-      opacity: 0.4;
-    }
-
-    kbd {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-size: 10px;
-      margin: 0 2px;
-    }
-
-    #loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--bg-base);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    /* Hide Footer/Sidebar on Mobile */
-    @media (max-width: 768px) {
-      #sidebar {
-        display: none;
+          transparent 60%
+        ), radial-gradient(at 0% 0%, rgba(0, 0, 0, 0.3) 0px, transparent 50%),
+          radial-gradient(at 100% 100%, rgb(0 0 0) 0px, transparent 50%);
+        --glass-bg: rgba(255, 255, 255, 0.02);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --text-main: #eeeeee;
+        --accent-color: #ffffff;
+        --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
       }
 
-      #sidebar-toggle {
-        display: none;
+      * {
+        box-sizing: border-box;
       }
 
-      footer {
-        display: none !important;
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--bg-base);
+        background-image: var(--bg-gradient);
+        color: var(--text-main);
+        font-family: "Inter", sans-serif;
+        align-items: center;
+        overflow-x: hidden;
+        transition: background 0.6s ease, color 0.6s ease;
       }
 
       header {
-        padding: 16px 20px;
+        width: 100%;
+        padding: 24px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+      }
+
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .logo {
+        font-weight: 700;
+        font-size: 1.6rem;
+        color: var(--accent-color);
+        letter-spacing: -0.04em;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
       }
 
       main {
-        width: 95%;
-        height: calc(100vh - 140px);
+        width: 92%;
+        max-width: 1100px;
+        height: calc(100vh - 180px);
+        margin-bottom: 40px;
+        display: flex;
+        /* Changed to flex-row */
+        background: var(--glass-bg);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 32px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
       }
-    }
 
-    /* OverType Overrides */
-    .ot-root {
-      height: 100% !important;
-    }
+      /* Sidebar Styles */
+      #sidebar {
+        width: var(--sidebar-width);
+        border-right: 1px solid var(--glass-border);
+        display: flex;
+        flex-direction: column;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+        overflow: hidden;
+        background: rgba(127, 127, 127, 0.03);
+      }
 
-    .overtype-input,
-    .overtype-preview-container {
-      background: transparent !important;
-    }
+      body.sidebar-collapsed #sidebar {
+        width: 0;
+        opacity: 0;
+        border: none;
+      }
 
-    .overtype-toolbar {
-      background: rgba(127, 127, 127, 0.05) !important;
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--glass-border) !important;
-    }
+      .sidebar-content {
+        padding: 24px;
+        width: var(--sidebar-width);
+        overflow-y: auto;
+      }
 
-    .overtype-toolbar-button {
-      color: var(--text-main) !important;
-    }
+      .sidebar-header {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        opacity: 0.5;
+        margin-bottom: 16px;
+        font-weight: 700;
+      }
 
-    .overtype-toolbar-button:hover {
-      transform: translateY(-1px) !important;
-      border-color: var(--text-main) !important;
-      background: rgba(127, 127, 127, 0.05) !important;
-    }
+      #toc {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
 
-    [data-theme="dark"] .overtype-toolbar {
-      background: rgba(0, 0, 0, 0.2) !important;
-    }
+      .toc-link {
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-main);
+        text-align: left;
+        padding: 6px 5 !important;
+        width: 100%;
+        opacity: 0.6;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        box-shadow: none !important;
+      }
 
-    body[data-mode="view"] .overtype-toolbar {
-      display: none !important;
-    }
+      .toc-link:hover {
+        opacity: 1;
+        transform: translateX(4px);
+      }
 
-    /* Custom Scrollbars for all elements */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
+      .toc-h1 {
+        font-weight: 600;
+      }
 
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
+      .toc-h2 {
+        padding-left: 12px;
+        font-size: 13px;
+      }
 
-    ::-webkit-scrollbar-thumb {
-      /* Light mode default */
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 20px;
-      border: 2px solid transparent;
-      background-clip: content-box;
-    }
+      .toc-h3 {
+        padding-left: 24px;
+        font-size: 12px;
+      }
 
-    /* Dark mode override */
-    [data-theme="dark"] ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-    }
+      #editor-container {
+        flex: 1;
+        height: 100%;
+        overflow: hidden;
+      }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--text-main) !important;
-      background-clip: content-box;
-    }
+      #editor {
+        width: 100%;
+        height: 100%;
+        background: transparent !important;
+      }
 
-    /* Firefox Support */
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(127, 127, 127, 0.2) transparent;
-    }
+      button {
+        background: var(--glass-bg);
+        color: var(--text-main);
+        border: 1px solid var(--glass-border);
+        padding: 10px 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+      }
 
-    #theme-toggle {
-      font-size: 22px;
-      padding: 7px 12px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      height: 38px;
-      min-width: 44px;
-    }
+      button:hover {
+        transform: translateY(-1px);
+        border-color: var(--text-main);
+      }
 
-    /* Zen mode */
-    #zen {
-      border: 0;
-      margin-left: 45%;
-    }
+      button.primary {
+        background: var(--text-main);
+        color: var(--bg-base);
+        border: none;
+      }
 
-    body.zen-mode main {
-      width: 98vw !important;
-      height: 95vh !important;
-      max-width: none !important;
-      margin-top: 2.5vh;
-      margin-bottom: 0 !important;
-      z-index: 100;
-    }
+      #notification {
+        position: fixed;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        padding: 12px 24px;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        color: var(--text-main);
+        font-size: 14px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+        z-index: 1000;
+      }
 
-    body.zen-mode footer {
-      display: none !important;
-    }
+      #notification.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+      }
 
-    /* Modal Styling */
-    #modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(8px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 3000;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
+      footer {
+        width: 100%;
+        padding: 16px 40px;
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        font-size: 11px;
+        color: var(--text-main);
+        opacity: 0.4;
+      }
 
-    #modal-overlay.show {
-      display: flex;
-      opacity: 1;
-    }
+      kbd {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 10px;
+        margin: 0 2px;
+      }
 
-    .modal-card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 32px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: var(--shadow);
-      transform: scale(0.9);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+      #loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--bg-base);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        font-weight: 600;
+        color: var(--text-main);
+      }
 
-    #modal-overlay.show .modal-card {
-      transform: scale(1);
-    }
+      /* Hide Footer/Sidebar on Mobile */
+      @media (max-width: 768px) {
+        #sidebar {
+          display: none;
+        }
 
-    .modal-title {
-      font-weight: 700;
-      font-size: 1.2rem;
-      margin-bottom: 24px;
-      color: var(--accent-color);
-    }
+        #sidebar-toggle {
+          display: none;
+        }
 
-    .modal-input {
-      width: 100%;
-      background: rgba(127, 127, 127, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      padding: 12px 16px;
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 14px;
-      margin-bottom: 24px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+        footer {
+          display: none !important;
+        }
 
-    .modal-input:focus {
-      border-color: var(--text-main);
-    }
+        header {
+          padding: 16px 20px;
+        }
 
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-    }
+        main {
+          width: 95%;
+          height: calc(100vh - 140px);
+        }
+      }
 
-    .modal-btn {
-      min-width: 80px;
-    }
-  </style>
-</head>
+      /* OverType Overrides */
+      .ot-root {
+        height: 100% !important;
+      }
 
-<body data-theme="light" data-mode="view">
-  <div id="loading-overlay">Initializing Engine...</div>
+      .overtype-input,
+      .overtype-preview-container {
+        background: transparent !important;
+      }
 
-  <header>
-    <div class="logo-group">
-      <button id="sidebar-toggle" title="Toggle Sidebar">☰</button>
-      <a href="#" class="logo" style="text-decoration: none; color: inherit">mdsnip</a>
-    </div>
-    <div class="actions">
-      <button id="theme-toggle" title="Toggle Dark Mode">☾</button>
-      <button id="mode-toggle" title="Toggle Edit/View Mode">Edit</button>
-      <button id="share-btn" title="Share link">Share</button>
-    </div>
-  </header>
+      .overtype-toolbar {
+        background: rgba(127, 127, 127, 0.05) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--glass-border) !important;
+      }
 
-  <main>
-    <aside id="sidebar">
-      <div class="sidebar-content">
-        <div class="sidebar-header">
-          Outline
-          <button id="zen" title="Toogle Zen">⛶</button>
+      .overtype-toolbar-button {
+        color: var(--text-main) !important;
+      }
+
+      .overtype-toolbar-button:hover {
+        transform: translateY(-1px) !important;
+        border-color: var(--text-main) !important;
+        background: rgba(127, 127, 127, 0.05) !important;
+      }
+
+      [data-theme="dark"] .overtype-toolbar {
+        background: rgba(0, 0, 0, 0.2) !important;
+      }
+
+      body[data-mode="view"] .overtype-toolbar {
+        display: none !important;
+      }
+
+      /* Custom Scrollbars for all elements */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        /* Light mode default */
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 20px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+
+      /* Dark mode override */
+      [data-theme="dark"] ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-main) !important;
+        background-clip: content-box;
+      }
+
+      /* Firefox Support */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(127, 127, 127, 0.2) transparent;
+      }
+
+      #theme-toggle {
+        font-size: 22px;
+        padding: 7px 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        height: 38px;
+        min-width: 44px;
+      }
+
+      /* Zen mode */
+      #zen {
+        border: 0;
+        margin-left: 45%;
+      }
+
+      body.zen-mode main {
+        width: 98vw !important;
+        height: 95vh !important;
+        max-width: none !important;
+        margin-top: 2.5vh;
+        margin-bottom: 0 !important;
+        z-index: 100;
+      }
+
+      body.zen-mode footer {
+        display: none !important;
+      }
+
+      /* Modal Styling */
+      #modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 3000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      #modal-overlay.show {
+        display: flex;
+        opacity: 1;
+      }
+
+      .modal-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 32px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: var(--shadow);
+        transform: scale(0.9);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      #modal-overlay.show .modal-card {
+        transform: scale(1);
+      }
+
+      .modal-title {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 24px;
+        color: var(--accent-color);
+      }
+
+      .modal-input {
+        width: 100%;
+        background: rgba(127, 127, 127, 0.05);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 14px;
+        margin-bottom: 24px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .modal-input:focus {
+        border-color: var(--text-main);
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .modal-btn {
+        min-width: 80px;
+      }
+    </style>
+  </head>
+
+  <body data-theme="light" data-mode="view">
+    <div id="loading-overlay">Initializing Engine...</div>
+
+    <header>
+      <div class="logo-group">
+        <button id="sidebar-toggle" title="Toggle Sidebar">☰</button>
+        <a href="#" class="logo" style="text-decoration: none; color: inherit"
+        >mdsnip</a>
+      </div>
+      <div class="actions">
+        <button id="theme-toggle" title="Toggle Dark Mode">☾</button>
+        <button id="mode-toggle" title="Toggle Edit/View Mode">Edit</button>
+        <button id="share-btn" title="Share link">Share</button>
+      </div>
+    </header>
+
+    <main>
+      <aside id="sidebar">
+        <div class="sidebar-content">
+          <div class="sidebar-header">
+            Outline
+            <button id="zen" title="Toogle Zen">⛶</button>
+          </div>
+          <nav id="toc"></nav>
         </div>
-        <nav id="toc"></nav>
+      </aside>
+      <div id="editor-container">
+        <div id="editor"></div>
       </div>
-    </aside>
-    <div id="editor-container">
-      <div id="editor"></div>
-    </div>
-  </main>
+    </main>
 
-
-  <div id="modal-overlay">
-    <div class="modal-card">
-      <div id="modal-title" class="modal-title"></div>
-      <input type="password" id="modal-input" class="modal-input" placeholder="Password">
-      <div class="modal-actions">
-        <button id="modal-cancel" class="modal-btn">Cancel</button>
-        <button id="modal-confirm" class="modal-btn primary">Confirm</button>
+    <div id="modal-overlay">
+      <div class="modal-card">
+        <div id="modal-title" class="modal-title"></div>
+        <input
+          type="password"
+          id="modal-input"
+          class="modal-input"
+          placeholder="Password"
+        >
+        <div class="modal-actions">
+          <button id="modal-cancel" class="modal-btn">Cancel</button>
+          <button id="modal-confirm" class="modal-btn primary">Confirm</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="notification">Link copied to clipboard</div>
+    <div id="notification">Link copied to clipboard</div>
 
-  <script src="static/wasm_exec.js"></script>
-  <script type="module">
-    const shareBtn = document.getElementById("share-btn");
-    const themeToggle = document.getElementById("theme-toggle");
-    const modeToggle = document.getElementById("mode-toggle");
-    const sidebarToggle = document.getElementById("sidebar-toggle");
-    const notification = document.getElementById("notification");
-    const loadingOverlay = document.getElementById("loading-overlay");
-    const tocContainer = document.getElementById("toc");
+    <script src="static/wasm_exec.js"></script>
+    <script type="module">
+      const shareBtn = document.getElementById("share-btn");
+      const themeToggle = document.getElementById("theme-toggle");
+      const modeToggle = document.getElementById("mode-toggle");
+      const sidebarToggle = document.getElementById("sidebar-toggle");
+      const notification = document.getElementById("notification");
+      const loadingOverlay = document.getElementById("loading-overlay");
+      const tocContainer = document.getElementById("toc");
 
-    let wasmLoaded = false;
-    let overtype = null;
+      let wasmLoaded = false;
+      let overtype = null;
 
-    // --- MODAL SYSTEM ---
-    const modalOverlay = document.getElementById("modal-overlay");
-    const modalTitle = document.getElementById("modal-title");
-    const modalInput = document.getElementById("modal-input");
-    const modalCancel = document.getElementById("modal-cancel");
-    const modalConfirm = document.getElementById("modal-confirm");
+      // --- MODAL SYSTEM ---
+      const modalOverlay = document.getElementById("modal-overlay");
+      const modalTitle = document.getElementById("modal-title");
+      const modalInput = document.getElementById("modal-input");
+      const modalCancel = document.getElementById("modal-cancel");
+      const modalConfirm = document.getElementById("modal-confirm");
 
-    function showModal({
-      title,
-      showInput = true,
-      confirmText = "Confirm",
-      cancelText = "Cancel",
-    }) {
-      return new Promise((resolve) => {
-        modalTitle.textContent = title;
-        modalInput.style.display = showInput ? "block" : "none";
-        modalConfirm.textContent = confirmText;
-        modalCancel.textContent = cancelText;
-        modalInput.value = "";
+      function showModal({
+        title,
+        showInput = true,
+        confirmText = "Confirm",
+        cancelText = "Cancel",
+      }) {
+        return new Promise((resolve) => {
+          modalTitle.textContent = title;
+          modalInput.style.display = showInput ? "block" : "none";
+          modalConfirm.textContent = confirmText;
+          modalCancel.textContent = cancelText;
+          modalInput.value = "";
 
-        const close = (value) => {
-          modalOverlay.classList.remove("show");
-          setTimeout(() => {
-            modalOverlay.style.display = "none";
-            resolve(value);
-          }, 300);
-        };
-
-        modalConfirm.onclick = () =>
-          close(showInput ? modalInput.value : true);
-        modalCancel.onclick = () => close(null);
-        modalOverlay.style.display = "flex";
-        setTimeout(() => modalOverlay.classList.add("show"), 10);
-        if (showInput) setTimeout(() => modalInput.focus(), 100);
-      });
-    }
-
-    const MONO_THEME = {
-      name: "monochrome",
-      colors: {
-        bgPrimary: "transparent",
-        bgSecondary: "transparent",
-        text: "var(--text-main)",
-        h1: "var(--text-main)",
-        codeBg: "rgba(127, 127, 127, 0.1)",
-        hr: "var(--glass-border)",
-        syntaxMarker: "rgba(127, 127, 127, 0.4)",
-        cursor: "var(--text-main)",
-        selection: "rgba(127, 127, 127, 0.2)",
-      },
-    };
-
-    // --- CORE LOGIC ---
-
-    function setMode(mode) {
-      document.body.setAttribute("data-mode", mode);
-      if (mode === "view") {
-        modeToggle.innerHTML = "Edit";
-        if (overtype) overtype.showPreviewMode();
-      } else {
-        modeToggle.innerHTML = "View";
-        if (overtype) overtype.showNormalEditMode();
-      }
-      updateSidebar();
-    }
-
-    function updateSidebar() {
-      if (!overtype || !tocContainer) return;
-
-      const content = overtype.getValue();
-      const contentWithoutCode = content.replace(
-        /```[\s\S]*?```/g,
-        "",
-      );
-      const headingRegex = /^(#{1,3})\s+(.*)/gm;
-      tocContainer.innerHTML = "";
-
-      let match;
-      while (
-        (match = headingRegex.exec(contentWithoutCode)) !== null
-      ) {
-        const level = match[1].length;
-        const title = match[2].trim();
-        const btn = document.createElement("button");
-        btn.className = `toc-link toc-h${level}`;
-        btn.textContent = title;
-
-        btn.onclick = () => {
-          const editorEl = document.getElementById("editor");
-          const scrollContainer =
-            editorEl.querySelector(".overtype-preview-container") ||
-            editorEl.querySelector(".overtype-preview") ||
-            editorEl.querySelector("textarea") ||
-            editorEl.querySelector('[style*="overflow-y: auto"]');
-
-          if (!scrollContainer) return;
-
-          const target = Array.from(
-            scrollContainer.querySelectorAll(
-              `h1, h2, h3, .overtype-heading`,
-            ),
-          ).find((el) => el.textContent.trim().includes(title));
-
-          if (target) {
-            scrollContainer.scrollTo({
-              top: target.offsetTop - 20,
-              behavior: "smooth",
-            });
-          }
-        };
-        tocContainer.appendChild(btn);
-      }
-    }
-
-    function initOverType(content = "") {
-      const [instance] = new OverType("#editor", {
-        value: content,
-        placeholder: "Start writing...",
-        theme: MONO_THEME,
-        toolbar: true,
-        fontSize: "16px",
-      });
-      overtype = instance;
-
-      document.getElementById("editor").addEventListener(
-        "click",
-        (e) => {
-          if (e.target.closest(".overtype-toolbar-button")) {
+          const close = (value) => {
+            modalOverlay.classList.remove("show");
             setTimeout(() => {
-              const isPreview =
-                !!document.querySelector(".overtype-preview") ||
-                !document.querySelector(".overtype-input");
-              const newMode = isPreview ? "view" : "write";
-              if (
-                document.body.getAttribute("data-mode") !== newMode
-              ) setMode(newMode);
-            }, 50);
-          }
+              modalOverlay.style.display = "none";
+              resolve(value);
+            }, 300);
+          };
+
+          modalConfirm.onclick = () =>
+            close(showInput ? modalInput.value : true);
+          modalCancel.onclick = () => close(null);
+          modalOverlay.style.display = "flex";
+          setTimeout(() => modalOverlay.classList.add("show"), 10);
+          if (showInput) setTimeout(() => modalInput.focus(), 100);
+        });
+      }
+
+      const MONO_THEME = {
+        name: "monochrome",
+        colors: {
+          bgPrimary: "transparent",
+          bgSecondary: "transparent",
+          text: "var(--text-main)",
+          h1: "var(--text-main)",
+          codeBg: "rgba(127, 127, 127, 0.1)",
+          hr: "var(--glass-border)",
+          syntaxMarker: "rgba(127, 127, 127, 0.4)",
+          cursor: "var(--text-main)",
+          selection: "rgba(127, 127, 127, 0.2)",
         },
-      );
+      };
 
-      document.getElementById("editor").addEventListener(
-        "input",
-        updateSidebar,
-      );
-      setMode(document.body.getAttribute("data-mode") || "view");
-    }
+      // --- CORE LOGIC ---
 
-    // --- WASM & DATA HANDLING ---
-
-    const go = new Go();
-    WebAssembly.instantiateStreaming(
-      fetch("static/main.wasm"),
-      go.importObject,
-    )
-      .then((result) => {
-        go.run(result.instance);
-        wasmLoaded = true;
-        loadingOverlay.style.display = "none";
-        handleInitialData();
-      })
-      .catch((err) => {
-        loadingOverlay.innerHTML = "Error loading engine.";
-      });
-
-    async function handleInitialData() {
-      let hash = window.location.hash.substring(1);
-      if (!hash) {
-        initOverType("");
-        setMode("write");
-        return;
-      }
-
-      const isEncrypted = hash.startsWith(".");
-      if (isEncrypted) hash = hash.substring(1);
-
-      // 1. Decompress the fragment
-      const decompressed = window.decompressMarkdown(hash);
-      if (
-        typeof decompressed === "string" &&
-        decompressed.startsWith("Error:")
-      ) {
-        initOverType("# Error\n" + decompressed);
-        return;
-      }
-
-      let finalContent;
-
-      // 2. Handle Decryption if required
-      if (isEncrypted) {
-        const password = await showModal({
-          title: "Encryption required",
-        });
-
-        if (password === null) {
-          initOverType(
-            "# Encrypted\nAuthentication required to view this content.",
-          );
-          return;
+      function setMode(mode) {
+        document.body.setAttribute("data-mode", mode);
+        if (mode === "view") {
+          modeToggle.innerHTML = "Edit";
+          if (overtype) overtype.showPreviewMode();
+        } else {
+          modeToggle.innerHTML = "View";
+          if (overtype) overtype.showNormalEditMode();
         }
+        updateSidebar();
+      }
 
-        const decrypted = window.decryptMarkdown(
-          decompressed,
-          password,
+      function updateSidebar() {
+        if (!overtype || !tocContainer) return;
+
+        const content = overtype.getValue();
+        const contentWithoutCode = content.replace(
+          /```[\s\S]*?```/g,
+          "",
         );
-        if (
-          typeof decrypted === "string" &&
-          decrypted.startsWith("Error:")
+        const headingRegex = /^(#{1,3})\s+(.*)/gm;
+        tocContainer.innerHTML = "";
+
+        let match;
+        while (
+          (match = headingRegex.exec(contentWithoutCode)) !== null
         ) {
-          alert("Incorrect password or decryption failed.");
-          initOverType("# Error\n" + decrypted);
-          return;
+          const level = match[1].length;
+          const title = match[2].trim();
+          const btn = document.createElement("button");
+          btn.className = `toc-link toc-h${level}`;
+          btn.textContent = title;
+
+          btn.onclick = () => {
+            const editorEl = document.getElementById("editor");
+            const scrollContainer =
+              editorEl.querySelector(".overtype-preview-container") ||
+              editorEl.querySelector(".overtype-preview") ||
+              editorEl.querySelector("textarea") ||
+              editorEl.querySelector('[style*="overflow-y: auto"]');
+
+            if (!scrollContainer) return;
+
+            const target = Array.from(
+              scrollContainer.querySelectorAll(
+                `h1, h2, h3, .overtype-heading`,
+              ),
+            ).find((el) => el.textContent.trim().includes(title));
+
+            if (target) {
+              scrollContainer.scrollTo({
+                top: target.offsetTop - 20,
+                behavior: "smooth",
+              });
+            }
+          };
+          tocContainer.appendChild(btn);
         }
-        finalContent = decrypted;
-      } else {
-        // Non-encrypted content, convert Uint8Array back to UTF-8 string
-        finalContent = new TextDecoder().decode(decompressed);
       }
 
-      initOverType(finalContent);
-      setMode("view");
-    }
-
-    shareBtn.addEventListener("click", async () => {
-      if (!wasmLoaded || !overtype) return;
-      const content = overtype.getValue();
-      if (!content.trim()) return alert("Write something first!");
-
-      let dataToCompress = content;
-      let prefix = "";
-
-      const wantEncrypt = await showModal({
-        title: "Protect this link with a password?",
-        showInput: false,
-        confirmText: "Protect",
-        cancelText: "Skip",
-      });
-
-      if (wantEncrypt) {
-        const password = await showModal({
-          title: "Enter encryption password",
+      function initOverType(content = "") {
+        const [instance] = new OverType("#editor", {
+          value: content,
+          placeholder: "Start writing...",
+          theme: MONO_THEME,
+          toolbar: true,
+          fontSize: "16px",
         });
-        if (!password) {
+        overtype = instance;
+
+        document.getElementById("editor").addEventListener(
+          "click",
+          (e) => {
+            if (e.target.closest(".overtype-toolbar-button")) {
+              setTimeout(() => {
+                const isPreview =
+                  !!document.querySelector(".overtype-preview") ||
+                  !document.querySelector(".overtype-input");
+                const newMode = isPreview ? "view" : "write";
+                if (
+                  document.body.getAttribute("data-mode") !== newMode
+                ) setMode(newMode);
+              }, 50);
+            }
+          },
+        );
+
+        document.getElementById("editor").addEventListener(
+          "input",
+          updateSidebar,
+        );
+        setMode(document.body.getAttribute("data-mode") || "view");
+      }
+
+      // --- WASM & DATA HANDLING ---
+
+      const go = new Go();
+      WebAssembly.instantiateStreaming(
+        fetch("static/main.wasm"),
+        go.importObject,
+      )
+        .then((result) => {
+          go.run(result.instance);
+          wasmLoaded = true;
+          loadingOverlay.style.display = "none";
+          handleInitialData();
+        })
+        .catch((err) => {
+          loadingOverlay.innerHTML = "Error loading engine.";
+        });
+
+      async function handleInitialData() {
+        let hash = window.location.hash.substring(1);
+        if (!hash) {
+          initOverType("");
+          setMode("write");
           return;
         }
 
-        const encrypted = window.encryptMarkdown(content, password);
+        const isEncrypted = hash.startsWith(".");
+        if (isEncrypted) hash = hash.substring(1);
+
+        // 1. Decompress the fragment
+        const decompressed = window.decompressMarkdown(hash);
         if (
-          typeof encrypted === "string" &&
-          encrypted.startsWith("Error:")
+          typeof decompressed === "string" &&
+          decompressed.startsWith("Error:")
         ) {
-          return alert(encrypted);
+          initOverType("# Error\n" + decompressed);
+          return;
         }
 
-        dataToCompress = encrypted;
-        prefix = ".";
+        let finalContent;
+
+        // 2. Handle Decryption if required
+        if (isEncrypted) {
+          const password = await showModal({
+            title: "Encryption required",
+          });
+
+          if (password === null) {
+            initOverType(
+              "# Encrypted\nAuthentication required to view this content.",
+            );
+            return;
+          }
+
+          const decrypted = window.decryptMarkdown(
+            decompressed,
+            password,
+          );
+          if (
+            typeof decrypted === "string" &&
+            decrypted.startsWith("Error:")
+          ) {
+            alert("Incorrect password or decryption failed.");
+            initOverType("# Error\n" + decrypted);
+            return;
+          }
+          finalContent = decrypted;
+        } else {
+          // Non-encrypted content, convert Uint8Array back to UTF-8 string
+          finalContent = new TextDecoder().decode(decompressed);
+        }
+
+        initOverType(finalContent);
+        setMode("view");
       }
 
-      const compressed = window.compressMarkdown(dataToCompress);
-      const url =
-        `${window.location.origin}${window.location.pathname}#${prefix}${compressed}`;
+      shareBtn.addEventListener("click", async () => {
+        if (!wasmLoaded || !overtype) return;
+        const content = overtype.getValue();
+        if (!content.trim()) return alert("Write something first!");
 
-      navigator.clipboard.writeText(url).then(() => {
-        notification.textContent = wantEncrypt
-          ? "Encrypted link copied!"
-          : "Link copied to clipboard";
-        notification.classList.add("show");
-        setTimeout(() => notification.classList.remove("show"), 3000);
+        let dataToCompress = content;
+        let prefix = "";
+
+        const wantEncrypt = await showModal({
+          title: "Protect this link with a password?",
+          showInput: false,
+          confirmText: "Protect",
+          cancelText: "Skip",
+        });
+
+        if (wantEncrypt) {
+          const password = await showModal({
+            title: "Enter encryption password",
+          });
+          if (!password) {
+            return;
+          }
+
+          const encrypted = window.encryptMarkdown(content, password);
+          if (
+            typeof encrypted === "string" &&
+            encrypted.startsWith("Error:")
+          ) {
+            return alert(encrypted);
+          }
+
+          dataToCompress = encrypted;
+          prefix = ".";
+        }
+
+        const compressed = window.compressMarkdown(dataToCompress);
+        const url =
+          `${window.location.origin}${window.location.pathname}#${prefix}${compressed}`;
+
+        navigator.clipboard.writeText(url).then(() => {
+          notification.textContent = wantEncrypt
+            ? "Encrypted link copied!"
+            : "Link copied to clipboard";
+          notification.classList.add("show");
+          setTimeout(() => notification.classList.remove("show"), 3000);
+        });
       });
-    });
 
-    // --- UI EVENT LISTENERS ---
+      // --- UI EVENT LISTENERS ---
 
-    sidebarToggle.addEventListener("click", () => {
-      document.body.classList.toggle("sidebar-collapsed");
-    });
+      sidebarToggle.addEventListener("click", () => {
+        document.body.classList.toggle("sidebar-collapsed");
+      });
 
-    modeToggle.addEventListener("click", () => {
-      const currentMode = document.body.getAttribute("data-mode");
-      setMode(currentMode === "view" ? "write" : "view");
-    });
+      modeToggle.addEventListener("click", () => {
+        const currentMode = document.body.getAttribute("data-mode");
+        setMode(currentMode === "view" ? "write" : "view");
+      });
 
-    themeToggle.addEventListener("click", () => {
-      const isDark =
-        document.body.getAttribute("data-theme") === "dark";
-      document.body.setAttribute(
-        "data-theme",
-        isDark ? "light" : "dark",
-      );
-      themeToggle.textContent = isDark ? "☾" : "☼";
-    });
+      themeToggle.addEventListener("click", () => {
+        const theme =
+          document.body.getAttribute("data-theme") === "dark"
+            ? "light"
+            : "dark";
+        document.body.setAttribute(
+          "data-theme",
+          theme,
+        );
+        localStorage.setItem("theme", theme);
+        themeToggle.textContent = theme === "dark" ? "☾" : "☼";
+      });
 
-    const zenModeBtn = document.getElementById("zen");
-    const zenModeToggle = () =>
-      document.body.classList.toggle("zen-mode");
-    zenModeBtn.addEventListener("click", zenModeToggle);
+      const zenModeBtn = document.getElementById("zen");
+      const zenModeToggle = () =>
+        document.body.classList.toggle("zen-mode");
+      zenModeBtn.addEventListener("click", zenModeToggle);
 
-    // --- SHORTCUTS ---
+      // --- SHORTCUTS ---
 
-    window.addEventListener("keydown", (e) => {
-      if (e.ctrlKey) {
-        if (e.code === "Space") {
-          e.preventDefault();
-          modeToggle.click();
+      window.addEventListener("keydown", (e) => {
+        if (e.ctrlKey) {
+          if (e.code === "Space") {
+            e.preventDefault();
+            modeToggle.click();
+          }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            shareBtn.click();
+          }
+          if (!e.shiftKey) return;
+          const key = e.key.toLowerCase();
+          if (key === "z") {
+            e.preventDefault();
+            zenModeToggle();
+          } else if (key === "l") {
+            e.preventDefault();
+            themeToggle.click();
+          }
         }
-        if (e.key === "Enter") {
-          e.preventDefault();
-          shareBtn.click();
-        }
-        if (!e.shiftKey) return;
-        const key = e.key.toLowerCase();
-        if (key === "z") {
-          e.preventDefault();
-          zenModeToggle();
-        } else if (key === "l") {
-          e.preventDefault();
-          themeToggle.click();
-        }
+      });
+
+      const storedTheme = localStorage.getItem("theme");
+      if (storedTheme) {
+        document.body.setAttribute(
+          "data-theme",
+          storedTheme,
+        );
+        themeToggle.textContent = storedTheme === "dark" ? "☾" : "☼";
       }
-    });
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
