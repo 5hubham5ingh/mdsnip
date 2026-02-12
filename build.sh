@@ -2,7 +2,7 @@
 set -e
 
 APP_NAME="mdsnip"
-VERSION="v0.1.0"
+VERSION=$(git describe --tags --abbrev=0)
 DIST_DIR="dist"
 
 # Handle single build flag
