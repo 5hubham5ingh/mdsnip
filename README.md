@@ -67,33 +67,33 @@ A minimalist, premium editor and renderer built with performance and privacy in 
 | `Ctrl + Shift + Z` | Toggle Zen Mode |
 | `Ctrl + Shift + S` | Toggle Sidebar/Outline |
 
-## Why
+## Queries
 
-Before this tool, I use to write documents in Markdown using Nvim. Sharing this would require following steps:
-1. Copy the Markdown content.
-2. Open browser.
-3. Open google docs.
-4. Create new document.
-5. Right click and paste as Markdown.
-6. Change document access permission.
-7. Copy the shareable URL.
-8. Paste it in messaging app like Teams.
+**Why does this exists?**
+> Before this tool, I use to write documents in Markdown using Nvim. Sharing this would require following steps:
+> 1. Copy the Markdown content.
+> 2. Open browser.
+> 3. Open google docs.
+> 4. Create new document.
+> 5. Right click and paste as Markdown.
+> 6. Change document access permission.
+> 7. Copy the shareable URL.
+> 8. Paste it in messaging app like Teams.
+>
+> Using this tool, now I follow these steps.
+> 1. Run `mdsnip document_file_name.md | wl-copy`
+> 2. Paste it in Teams.
 
-Using this tool, now I follow these steps.
-1. Run `mdsnip document_file_name.md | wl-copy`
-2. Paste it in Teams.
+**Why not just paste the Markdown content directly in messaging app?**
+> - It makes the chat history dirty and external document is preferable over it.
+> - The shareable link is only visible in single line as most chat app show only a portion of it from the start.
+> - It is much easier and quicker to search from links saved as bookmarks in the browser than open google docs and search them.
+> - The links are auto saved as browser history for easy recoverability.
 
-**Q:** Why not just paste the Markdown content directly in messaging app?
-- It makes the chat history dirty and external document is preferable over it.
-- The shareable link is only visible in single line as most chat app show only a portion of it from the start.
-- It is much easier and quicker to search from links saved as bookmarks in the browser than open google docs and search them.
-- The links are auto saved as browser history for easy recoverability.
-
-**Q:** What about the URL length limit?
-
-* **Server-side:** Where limits are most restrictive, but irrelevant here as **URL hashes (`#`)** stay on the client and never reach the server.
-* **Chromium based browsers (Chrome/Edge/Brave):** Very lenient (~2,000,000 characters).
-* **Firefox:** Effectively unlimited.
+**What about the URL length limit?**
+> - **Server-side:** Where limits are most restrictive, but irrelevant here as **URL hashes (`#`)** stay on the client and never reach the server.
+> - **Chromium based browsers (Chrome/Edge/Brave):** Very generous (~2,000,000 characters).
+> - **Firefox:** Effectively unlimited.
 
 ## Development
 
@@ -108,7 +108,7 @@ The project uses a unified build system for the CLI (Multi-platform Go) and the 
 ./build.sh -1
 ```
 
-## Technical Details
+### Technical Details
 - **Compression**: flate (DEFLATE Level 9)
 - **Encryption**: AES-GCM (256-bit)
 - **Encoding**: Base64 Raw URL Encoding
