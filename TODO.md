@@ -1,3 +1,6 @@
 - add fevicon
 - implement terminal markdown renderer
-
+- 'wl-paste | mdsnip | less' is generating link instead of rendering markdown
+- embed compressed README.md which will be render on 'mdsnip -h'
+- Add fallback for non-kitty terminals (detect if the text protocol is supported else detect if the terminal is kitty)
+- the links are not clickable
