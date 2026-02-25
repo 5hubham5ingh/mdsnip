@@ -9,21 +9,25 @@ const options = [
 const choice = enquire.choose(options);
 
 if (choice === options[1]) {
-  $`npx serve .`;
+  os.exec(
+    `npx html-minifier-next main.html --collapse-whitespace --remove-comments --minify-js true --minify-css true -o index.html`
+      .split(" "),
+  );
+  os.exec(`npx serve .`.split(" "));
   std.exit(0);
 }
 
 if (choice === options[2]) {
   const lastVersion = exec("git describe --tags --abbrev=0");
   if (!enquire.confirm(`Re-release version "${lastVersion}"?`)) std.exit(0);
-  $`git tag -d ${lastVersion}`.log();
-  $`git push origin --delete ${lastVersion}`.log();
-  $`git push origin ${lastVersion}`.log();
+  os.exec(`git tag -d ${lastVersion}`.split(" "));
+  os.exec(`git push origin --delete ${lastVersion}`.split(" "));
+  os.exec(`git push origin ${lastVersion}`.split(" "));
   std.exit(0);
 }
 
 print("Last version:");
-$`git describe --tags --abbrev=0`.log();
+os.exec(`git describe --tags --abbrev=0`.split(" "));
 
 const version = enquire.ask("New version");
 
