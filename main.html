@@ -316,17 +316,42 @@
       }
 
       .overtype-input,
-      .overtype-preview-container {
+      .overtype-preview-container,
+      .overtype-preview,
+      .ot-preview,
+      .ot-content {
         background: transparent !important;
         color: var(--text-main) !important;
       }
 
       .ot-root {
         height: 100% !important;
+        /* Force monochromatic variables for OverType */
+        --text: var(--text-main) !important;
+        --primary: var(--text-main) !important;
+        --link: var(--text-main) !important;
+        --h1: var(--text-main) !important;
+        --h2: var(--text-main) !important;
+        --h3: var(--text-main) !important;
+        --preview-text: var(--text-main) !important;
+        --preview-h1: var(--text-main) !important;
+        --preview-h2: var(--text-main) !important;
+        --preview-h3: var(--text-main) !important;
+        --preview-link: var(--text-main) !important;
+        --preview-strong: var(--text-main) !important;
+        --preview-em: var(--text-main) !important;
+        --preview-blockquote: var(--text-main) !important;
+        --preview-code: var(--text-main) !important;
       }
 
-      .ot-root, .ot-root *, #editor, #editor * {
+      .ot-root, .ot-root *, #editor, #editor *, .overtype-preview *, .ot-preview *, .ot-content * {
         color: var(--text-main) !important;
+      }
+
+      /* Ensure links and special tokens also follow monochromatic theme */
+      .ot-root a, .overtype-preview a, .ot-preview a, .ot-content a {
+        color: var(--text-main) !important;
+        text-decoration-color: var(--text-main) !important;
       }
 
       .overtype-toolbar {
@@ -612,6 +637,11 @@
           list: "var(--text-main)",
           quote: "var(--text-main)",
           link: "var(--text-main)",
+          previewText: "var(--text-main)",
+          previewH1: "var(--text-main)",
+          previewH2: "var(--text-main)",
+          previewH3: "var(--text-main)",
+          previewLink: "var(--text-main)",
           codeBg: "rgba(127, 127, 127, 0.1)",
           hr: "var(--glass-border)",
           syntaxMarker: "rgba(127, 127, 127, 0.4)",
