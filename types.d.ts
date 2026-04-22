@@ -1,1 +1,0 @@
-/home/ss/.config/js/types.d.ts
