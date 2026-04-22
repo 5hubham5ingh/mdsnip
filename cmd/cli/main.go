@@ -27,10 +27,12 @@ func main() {
 
 	// 2. Determine Input Source (Argument vs. Stdin)
 	args := flag.Args()
+	cleanBaseURL := strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(baseURL, "https://"), "http://"), "/")
+	
 	if len(args) > 0 {
 		// CLI Argument Case: Could be a URL or a File Path
 		arg := args[0]
-		if strings.HasPrefix(arg, baseURL) {
+		if strings.HasPrefix(arg, "https://"+cleanBaseURL) || strings.HasPrefix(arg, "http://"+cleanBaseURL) {
 			input = []byte(arg)
 			isURL = true
 		} else {
@@ -50,8 +52,9 @@ func main() {
 				os.Exit(1)
 			}
 			input = bytes.TrimSpace(input)
+			inputStr := string(input)
 			// Check if single-line stdin is a URL
-			if !bytes.Contains(input, []byte("\n")) && strings.HasPrefix(string(input), baseURL) {
+			if !strings.Contains(inputStr, "\n") && (strings.HasPrefix(inputStr, "https://"+cleanBaseURL) || strings.HasPrefix(inputStr, "http://"+cleanBaseURL)) {
 				isURL = true
 			}
 		} else {

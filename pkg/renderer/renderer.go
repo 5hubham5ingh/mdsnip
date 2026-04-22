@@ -146,10 +146,13 @@ func (r *renderer) inline(n ast.Node) string {
 		return ansiCodeBg + " " + r.plainText(n) + " " + ansiReset
 	case ast.KindLink:
 		l := n.(*ast.Link)
-		return ansiUL + r.inlineAll(n) + ansiULOff + ansiDim + " (" + string(l.Destination) + ")" + ansiDimOff
+		dest := string(l.Destination)
+		content := r.inlineAll(n)
+		// OSC 8: \x1b]8;;URL\x1b\TEXT\x1b]8;;\x1b\
+		return "\x1b]8;;" + dest + "\x1b\\" + ansiUL + content + ansiULOff + "\x1b]8;;\x1b\\" + ansiDim + " (" + dest + ")" + ansiDimOff
 	case ast.KindAutoLink:
 		u := string(n.(*ast.AutoLink).URL(r.src))
-		return ansiUL + u + ansiULOff
+		return "\x1b]8;;" + u + "\x1b\\" + ansiUL + u + ansiULOff + "\x1b]8;;\x1b\\"
 	case ast.KindImage:
 		return "[" + r.plainText(n) + "](" + string(n.(*ast.Image).Destination) + ")"
 	case ast.KindRawHTML:
@@ -174,12 +177,29 @@ func (r *renderer) inlineAll(n ast.Node) string {
 func (r *renderer) heading(n *ast.Heading) string {
 	t := r.plainText(n)
 
-	sz := 1
-	if n.Level >= 1 && n.Level <= 6 {
-		sz = hSizes[n.Level]
+	if isKitty() {
+		sz := 1
+		if n.Level >= 1 && n.Level <= 6 {
+			sz = hSizes[n.Level]
+		}
+
+		return fmt.Sprintf("\x1b]66;s=%d;%s\x07%s", sz, t, strings.Repeat("\n", sz))
 	}
 
-	return fmt.Sprintf("\x1b]66;s=%d;%s\x07%s", sz, t, strings.Repeat("\n", sz))
+	// Fallback for non-kitty terminals
+	level := n.Level
+	if level < 1 {
+		level = 1
+	}
+	if level > 6 {
+		level = 6
+	}
+	prefix := strings.Repeat("#", level)
+	return ansiBold + prefix + " " + t + ansiBoldOff + "\n\n"
+}
+
+func isKitty() bool {
+	return os.Getenv("TERM") == "xterm-kitty" || os.Getenv("KITTY_WINDOW_ID") != ""
 }
 
 func (r *renderer) para(n *ast.Paragraph) string {
