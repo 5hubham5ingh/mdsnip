@@ -318,6 +318,15 @@
       .overtype-input,
       .overtype-preview-container {
         background: transparent !important;
+        color: var(--text-main) !important;
+      }
+
+      .ot-root {
+        height: 100% !important;
+      }
+
+      .ot-root, .ot-root *, #editor, #editor * {
+        color: var(--text-main) !important;
       }
 
       .overtype-toolbar {
@@ -587,7 +596,22 @@
           bgPrimary: "transparent",
           bgSecondary: "transparent",
           text: "var(--text-main)",
+          primary: "var(--text-main)",
+          foreground: "var(--text-main)",
           h1: "var(--text-main)",
+          h2: "var(--text-main)",
+          h3: "var(--text-main)",
+          h4: "var(--text-main)",
+          h5: "var(--text-main)",
+          h6: "var(--text-main)",
+          keyword: "var(--text-main)",
+          string: "var(--text-main)",
+          number: "var(--text-main)",
+          operator: "var(--text-main)",
+          comment: "rgba(127, 127, 127, 0.6)",
+          list: "var(--text-main)",
+          quote: "var(--text-main)",
+          link: "var(--text-main)",
           codeBg: "rgba(127, 127, 127, 0.1)",
           hr: "var(--glass-border)",
           syntaxMarker: "rgba(127, 127, 127, 0.4)",
