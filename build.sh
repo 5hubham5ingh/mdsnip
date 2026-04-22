@@ -41,19 +41,22 @@ if command -v tinygo &>/dev/null; then
   cp "${TINYGO_ROOT}/targets/wasm_exec.js" static/
   echo "  - Minifying wasm_exec.js..."
   npx terser static/wasm_exec.js -c -m -o static/wasm_exec.js
-  # -no-debug: strips debug symbols
-  # -panic=trap: replaces panic messages with a simple processor trap
+  echo "  - Running tinygo build..."
   tinygo build -o static/main.wasm -target wasm -no-debug -panic=trap cmd/wasm/main.go
-
+  
   if command -v wasm-opt &>/dev/null; then
     echo "  - Running wasm-opt for maximum optimization..."
     wasm-opt -Oz static/main.wasm -o static/main.wasm
+  else
+    echo "  - Warning: wasm-opt not found, skipping optimization."
   fi
 else
-  echo "  - TinyGo not found, falling back to standard Go (binary will be larger)..."
+  echo "  - TinyGo not found, falling back to standard Go..."
   cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" static/
   GOOS=js GOARCH=wasm go build -o static/main.wasm cmd/wasm/main.go
 fi
+
+echo "WASM build completed."
 
 # 2. Build CLI for multiple platforms
 PLATFORMS=(

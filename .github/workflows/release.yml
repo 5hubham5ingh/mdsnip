@@ -26,18 +26,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install TinyGo
-        run: |
-          wget https://github.com/tinygo-org/tinygo/releases/download/v0.40.1/tinygo_0.40.1_amd64.deb
-          sudo dpkg -i tinygo_0.40.1_amd64.deb
+      - name: Set up TinyGo
+        uses: tinygo-org/setup-tinygo@v2
+        with:
+          tinygo-version: '0.41.0'
 
-      - name: Install wasm-opt (Binaryen)
+      - name: Set up Binaryen (wasm-opt)
         run: |
           sudo apt-get update
           sudo apt-get install -y binaryen
 
       - name: Install Build Tools (HTML & JS Minifiers)
-        # We install these globally so 'npx' finds them instantly
         run: npm install -g html-minifier-next terser
 
       - name: Run build script
