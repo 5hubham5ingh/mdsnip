@@ -9,11 +9,13 @@ show_menu() {
     echo " mdsnip - Management Script"
     echo "------------------------------------------"
     echo "1) Start Dev Server (Minify + Serve)"
-    echo "2) Release New Version"
-    echo "3) Re-release Last Version"
-    echo "4) Exit"
+    echo "2) Trigger New Release (via Tag)"
+    echo "3) Re-release Last Version (via Tag)"
+    echo "4) Create Release Locally (via 'gh' CLI - requires gh installed)"
+    echo "5) Run Build (Local Only)"
+    echo "6) Exit"
     echo "------------------------------------------"
-    read -p "Choose an option [1-4]: " choice
+    read -p "Choose an option [1-6]: " choice
 }
 
 start_dev_server() {
@@ -87,6 +89,31 @@ re_release_last() {
     git push origin "$last_version"
 }
 
+create_release_locally() {
+    if ! command -v gh &> /dev/null; then
+        echo "Error: 'gh' CLI not found. Please install it first."
+        return
+    fi
+
+    last_tag=$(git describe --tags --abbrev=0 2>/dev/null)
+    read -p "Enter version tag (default: $last_tag): " version
+    version=${version:-$last_tag}
+
+    echo "Building binaries..."
+    bash build.sh
+
+    if [ ! -d "dist" ] || [ -z "$(ls -A dist/*.tar.gz 2>/dev/null)" ]; then
+        echo "Error: No binaries found in dist/ directory."
+        return
+    fi
+
+    echo "Creating GitHub release for $version..."
+    gh release create "$version" dist/*.tar.gz dist/*.zip --title "Release $version" --notes "Release $version" || \
+    gh release upload "$version" dist/*.tar.gz dist/*.zip --clobber
+
+    echo "Release $version created/updated successfully with local binaries!"
+}
+
 # Main loop
 if [ -n "$1" ]; then
     # Direct command execution if argument provided
@@ -102,7 +129,9 @@ else
             1) start_dev_server ;;
             2) release_version ;;
             3) re_release_last ;;
-            4) exit 0 ;;
+            4) create_release_locally ;;
+            5) bash build.sh ;;
+            6) exit 0 ;;
             *) echo "Invalid option." ;;
         esac
         echo ""

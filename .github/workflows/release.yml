@@ -19,17 +19,17 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
+          go-version: 'stable'
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Set up TinyGo
-        uses: tinygo-org/setup-tinygo@v2
-        with:
-          tinygo-version: '0.41.0'
+      - name: Install TinyGo
+        run: |
+          wget https://github.com/tinygo-org/tinygo/releases/download/v0.41.0/tinygo_0.41.0_amd64.deb
+          sudo dpkg -i tinygo_0.41.0_amd64.deb
 
       - name: Set up Binaryen (wasm-opt)
         run: |
@@ -49,7 +49,7 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ steps.get_version.outputs.VERSION }}
           draft: false
